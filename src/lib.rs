@@ -46,8 +46,7 @@ impl Display for Polynomial {
         if let None = self.degree() {
             return write!(f, "0");
         }
-
-        let mut repr = String::new();
+        
         let mut powers: Vec<_> = self.coefficients.keys().collect();
         powers.sort_by(|a, b| b.cmp(a));
 
@@ -61,20 +60,21 @@ impl Display for Polynomial {
             let sign = if *coefficient > 0.0 { "+" } else { "-" };
 
             if *power != self.degree().unwrap() || sign == "-" {
-                repr.push_str(&format!(" {sign} "));
+                write!(f, " {sign} ")?;
             }
 
             if *coefficient != 1.0 {
-                repr.push_str(&coefficient.abs().to_string());
+                write!(f, "{}", coefficient.abs())?;
+                
             }
 
             if *power > 1 {
-                repr.push_str(&format!("x^{}", power));
+                write!(f, "x^{power}")?;
             } else if *power == 1 {
-                repr.push_str("x");
+                write!(f, "x")?;
             }
         }
-        write!(f, "{}", repr)
+        Ok(())
     }
 }
 
