@@ -1,7 +1,10 @@
 use std::collections::HashMap;
 use std::fmt::{self, Display};
+use std::ops::{Add, Sub, Mul, Div, Neg, AddAssign, SubAssign, MulAssign, DivAssign};
+use std::cmp::PartialEq;
 use regex::Regex;
 
+#[derive(PartialEq)]
 pub struct Polynomial {
     coefficients: HashMap<u32, f64>,
 }
@@ -25,6 +28,18 @@ impl Polynomial {
         self.coefficients.get(&power).copied().unwrap_or(0.0)
     }
 
+    pub fn add_coefficient_at(&mut self, power: u32, coefficient: f64) {
+        self.set_coefficient_at(power, self.get_coefficient_at(power) + coefficient);
+    }
+    
+    pub fn sub_coefficient_at(&mut self, power: u32, coefficient: f64) {
+        self.set_coefficient_at(power, self.get_coefficient_at(power) - coefficient);
+    }
+    
+    pub fn mul_coefficient_at(&mut self, power: u32, coefficient: f64) {
+        self.set_coefficient_at(power, self.get_coefficient_at(power) * coefficient);
+    }
+    
     pub fn from_coefficients(coefficients: &Vec<f64>) -> Polynomial {
         let mut poly = Polynomial::zero();
         for (power, coefficient) in (0..coefficients.len()).rev().zip(coefficients.iter()) {
@@ -114,6 +129,23 @@ impl Polynomial {
     
         Ok(poly)
     }
+    
+    pub fn clear(&mut self) {
+        self.coefficients.clear();
+    }
+
+    fn mul(poly1: &Polynomial, poly2: &Polynomial) -> Polynomial {
+        let mut poly = Polynomial::zero();
+        for (power, coefficient) in poly1.coefficients.iter() {
+            for (other_power, other_coefficient) in poly2.coefficients.iter() {
+                poly.add_coefficient_at(
+                    *power + *other_power,
+                    *coefficient * *other_coefficient
+                );
+            }
+        }
+        poly
+    }
 }
 
 impl Display for Polynomial {
@@ -151,6 +183,140 @@ impl Display for Polynomial {
             }
         }
         Ok(())
+    }
+}
+
+impl Add for Polynomial {
+    type Output = Polynomial;
+
+    fn add(mut self, other: Self) -> Self::Output {
+        for (power, coefficient) in other.coefficients.iter() {
+            self.add_coefficient_at(*power, *coefficient);
+        }
+        self
+    }
+}
+
+impl Add<f64> for Polynomial {
+    type Output = Polynomial;
+    
+    fn add(mut self, other: f64) -> Self::Output {
+        self.add_coefficient_at(0, other);
+        self
+    }   
+}
+
+impl AddAssign for Polynomial {
+    fn add_assign(&mut self, other: Self) {
+        for (power, coefficient) in other.coefficients.iter() {
+            self.add_coefficient_at(*power, *coefficient);
+        }
+    }   
+}
+
+impl AddAssign<f64> for Polynomial {
+    fn add_assign(&mut self, other: f64) {
+        self.add_coefficient_at(0, other);
+    }   
+}
+
+impl Sub for Polynomial {
+    type Output = Polynomial;
+    
+    fn sub(mut self, other: Self) -> Self::Output {
+        for (power, coefficient) in other.coefficients.iter() {
+            self.sub_coefficient_at(*power, *coefficient);
+        }
+        self
+    }
+}
+
+impl Sub<f64> for Polynomial {
+    type Output = Polynomial;
+    
+    fn sub(mut self, other: f64) -> Self::Output {
+        self.sub_coefficient_at(0, other);
+        self
+    }
+}
+
+impl SubAssign for Polynomial {
+    fn sub_assign(&mut self, other: Self) {
+        for (power, coefficient) in other.coefficients.iter() {
+            self.sub_coefficient_at(*power, *coefficient);
+        }
+    }
+}
+
+impl SubAssign<f64> for Polynomial {
+    fn sub_assign(&mut self, other: f64) {
+        self.sub_coefficient_at(0, other);
+    }
+}
+
+impl Mul for Polynomial {
+    type Output = Polynomial;
+    
+    fn mul(self, other: Self) -> Self::Output {
+        Polynomial::mul(&self, &other)
+    }
+}
+
+impl Mul<f64> for Polynomial {
+    type Output = Polynomial;
+    
+    fn mul(self, other: f64) -> Self::Output {
+        let mut poly = Polynomial::zero();
+        for (power, coefficient) in self.coefficients.iter() {
+            poly.set_coefficient_at(*power, *coefficient * other);
+        }
+        poly
+    }
+}
+
+impl MulAssign for Polynomial {
+    fn mul_assign(&mut self, other: Self) {
+        *self = Polynomial::mul(&self, &other);
+    }
+}
+
+impl MulAssign<f64> for Polynomial {
+    fn mul_assign(&mut self, other: f64) {
+        let mut poly = Polynomial::zero();
+        for (power, coefficient) in self.coefficients.iter() {
+            poly.set_coefficient_at(*power, *coefficient * other);
+        }
+        *self = poly;
+    }
+}
+
+impl Div<f64> for Polynomial {
+    type Output = Polynomial;
+    
+    fn div(mut self, other: f64) -> Self::Output {
+        for (_, coefficient) in self.coefficients.iter_mut() {
+            *coefficient /= other;
+        }
+        self
+    }
+}
+
+impl Neg for Polynomial {
+    type Output = Polynomial;
+    
+    fn neg(mut self) -> Self::Output {
+        for (_, coefficient) in self.coefficients.iter_mut() {
+            *coefficient *= -1.0;
+        }
+        self
+    }
+}
+
+impl DivAssign<f64> for Polynomial {
+    fn div_assign(&mut self, other: f64) {
+        for (_, coefficient) in self.coefficients.iter_mut() {
+            *coefficient /= other;
+        }
     }
 }
 
@@ -283,5 +449,88 @@ mod tests {
     fn from_string_empty() {
         let poly = Polynomial::from_string("").unwrap();
         assert!(poly.is_zero());
+    }
+    
+    #[test]
+    fn polynomial_clear() {
+        let mut poly = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
+        poly.clear();
+        assert!(poly.is_zero());
+    }
+    
+    #[test]
+    fn polynomial_add() {
+        let poly1 = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
+        let poly2 = Polynomial::from_coefficients(&vec![-2.0, -2.0, -1.0]);
+        let poly3 = poly1 + poly2;
+        assert!(poly3 == Polynomial::from_coefficients(&vec![-1.0, 0.0, -4.0]));
+    }
+    
+    #[test]
+    fn polynomial_add_assign() {
+        let mut poly1 = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
+        let poly2 = Polynomial::from_coefficients(&vec![-2.0, -2.0, -1.0]);
+        poly1 += poly2;
+        assert!(poly1 == Polynomial::from_coefficients(&vec![-1.0, 0.0, -4.0]));
+    }
+    
+    #[test]
+    fn polynomial_sub() {
+        let poly1 = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
+        let poly2 = Polynomial::from_coefficients(&vec![-2.0, 2.0, -1.0]);
+        let poly3 = poly1 - poly2;
+        assert!(poly3 == Polynomial::from_coefficients(&vec![3.0, 0.0, -2.0]));
+    }
+    
+    #[test]
+    fn polynomial_sub_assign() {
+        let mut poly1 = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
+        let poly2 = Polynomial::from_coefficients(&vec![-2.0, 2.0, -1.0]);
+        poly1 -= poly2;
+        assert!(poly1 == Polynomial::from_coefficients(&vec![3.0, 0.0, -2.0]));
+    }
+    
+    #[test]
+    fn polynomial_mul() {
+        let poly1 = Polynomial::from_coefficients(&vec![1.0, -2.0]);
+        let poly2 = Polynomial::from_coefficients(&vec![-2.0, 0.0, 3.0]);
+        let poly3 = poly1 * poly2;
+        assert!(poly3 == Polynomial::from_coefficients(&vec![-2.0, 4.0, 3.0, -6.0]));
+    }
+    
+    #[test]
+    fn polynomial_mul_assign() {
+        let mut poly1 = Polynomial::from_coefficients(&vec![1.0, -2.0]);
+        let poly2 = Polynomial::from_coefficients(&vec![-2.0, 0.0, 3.0]);
+        poly1 *= poly2;
+        assert!(poly1 == Polynomial::from_coefficients(&vec![-2.0, 4.0, 3.0, -6.0]));
+    }
+    
+    #[test]
+    fn polynomial_div_float() {
+        let poly1 = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
+        let poly2 = poly1 / 2.0;
+        assert!(poly2 == Polynomial::from_coefficients(&vec![0.5, 1.0, -1.5]));
+    }
+    
+    #[test]
+    fn polynomial_div_assign_float() {
+        let mut poly1 = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
+        poly1 /= 2.0;
+        assert!(poly1 == Polynomial::from_coefficients(&vec![0.5, 1.0, -1.5]));
+    }
+    
+    #[test]
+    fn polynomial_equality() {
+        let poly1 = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
+        let poly2 = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
+        assert!(poly1 == poly2);
+    }
+    
+    #[test]
+    fn polynomial_negation() {
+        let poly1 = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
+        let poly2 = Polynomial::from_coefficients(&vec![-1.0, -2.0, 3.0]);
+        assert!(poly1 == -poly2);
     }
 }
