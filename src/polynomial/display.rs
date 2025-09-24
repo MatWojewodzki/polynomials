@@ -8,12 +8,7 @@ impl Display for Polynomial {
             return write!(f, "0");
         }
 
-        let mut powers: Vec<_> = self.coefficients.keys().collect();
-        powers.sort_by(|a, b| b.cmp(a));
-
-        for power in powers {
-            let coefficient = self.coefficients.get(power).unwrap();
-
+        for (power, coefficient) in self.coefficients.iter().rev() {
             if *coefficient == 0.0 {
                 continue;
             }
