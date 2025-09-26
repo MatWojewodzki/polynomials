@@ -4,7 +4,7 @@ mod parsing;
 mod arithmetic;
 mod display;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub struct Polynomial {
     coefficients: BTreeMap<u32, f64>,
 }
