@@ -42,29 +42,28 @@ mod tests {
     #[test]
     fn to_string_handles_general_case() {
         let poly = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
-        assert_eq!(poly.to_string(), String::from("x^2 + 2x - 3"));
+        assert_eq!("x^2 + 2x - 3", poly.to_string());
     }
 
     #[test]
     fn to_string_handles_single_coefficient() {
         let poly = Polynomial::from_coefficients(&vec![5.0]);
-        assert_eq!(poly.to_string(), String::from("5"));
+        assert_eq!("5", poly.to_string());
     }
 
     #[test]
     fn to_string_handles_negative_coefficients() {
         let poly = Polynomial::from_coefficients(&vec![-2.0, -3.0, -1.0]);
-        assert_eq!(poly.to_string(), String::from("- 2x^2 - 3x - 1"));
+        assert_eq!("- 2x^2 - 3x - 1", poly.to_string());
     }
 
     #[test]
     fn to_string_handles_coefficient_one() {
-        let mut poly = Polynomial::zero();
-        poly.set_coefficient_at(2, 1.0);
-        assert_eq!(poly.to_string(), String::from("x^2"));
+        let poly = Polynomial::from_coefficients(&vec![1.0, 0.0, 0.0]);
+        assert_eq!("x^2", poly.to_string());
 
         let poly = Polynomial::from_coefficients(&vec![-1.0]);
-        assert_eq!(poly.to_string(), String::from("- 1"));
+        assert_eq!("- 1", poly.to_string());
     }
 
     #[test]
@@ -73,12 +72,12 @@ mod tests {
         poly.set_coefficient_at(10, 2.0);
         poly.set_coefficient_at(5, -3.0);
         poly.set_coefficient_at(0, 1.0);
-        assert_eq!(poly.to_string(), String::from("2x^10 - 3x^5 + 1"));
+        assert_eq!("2x^10 - 3x^5 + 1", poly.to_string());
     }
 
     #[test]
     fn to_string_handles_zero_polynomial() {
         let poly = Polynomial::zero();
-        assert_eq!(poly.to_string(), "0");
+        assert_eq!("0", poly.to_string());
     }
 }

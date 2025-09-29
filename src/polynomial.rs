@@ -28,15 +28,7 @@ impl Polynomial {
         self.coefficients.clear();
     }
 
-    pub fn from_coefficients(coefficients: &Vec<f64>) -> Polynomial {
-        let mut poly = Polynomial::zero();
-        for (power, coefficient) in (0..coefficients.len()).rev().zip(coefficients.iter()) {
-            poly.set_coefficient_at(power as u32, *coefficient);
-        }
-        poly
-    }
-
-    /// Evaluate the polynomial at a given x using Horner's method.
+    /// Evaluates the polynomial at a given x using Horner's method.
     ///
     /// # Examples
     ///
@@ -74,15 +66,6 @@ mod tests {
     }
 
     #[test]
-    fn from_coefficients_works_correctly() {
-        let poly = Polynomial::from_coefficients(&vec![2.0, 0.0, 2.0, -3.0]);
-        assert_eq!(poly.get_coefficient_at(3), 2.0);
-        assert_eq!(poly.get_coefficient_at(2), 0.0);
-        assert_eq!(poly.get_coefficient_at(1), 2.0);
-        assert_eq!(poly.get_coefficient_at(0), -3.0);
-    }
-
-    #[test]
     fn degree_works() {
         let mut poly = Polynomial::from_coefficients(&vec![-2.0]);
         assert_eq!(poly.degree(), Some(0));
@@ -117,12 +100,12 @@ mod tests {
     fn polynomial_equality() {
         let poly1 = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
         let poly2 = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
-        assert!(poly1 == poly2);
+        assert_eq!(poly1, poly2);
     }
 
     #[test]
     fn evaluate_works() {
         let poly = Polynomial::from_coefficients(&vec![3.0, 2.0, 0.0, -3.0]);
-        assert_eq!(poly.evaluate(-2.0), -19.0);
+        assert_eq!(-19.0, poly.evaluate(-2.0));
     }
 }

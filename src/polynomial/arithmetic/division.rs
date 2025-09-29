@@ -30,13 +30,13 @@ mod tests {
     fn polynomial_div_float() {
         let poly1 = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
         let poly2 = poly1 / 2.0;
-        assert!(poly2 == Polynomial::from_coefficients(&vec![0.5, 1.0, -1.5]));
+        assert_eq!(vec![0.5, 1.0, -1.5], poly2.get_coefficients());
     }
 
     #[test]
     fn polynomial_div_assign_float() {
         let mut poly1 = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
         poly1 /= 2.0;
-        assert!(poly1 == Polynomial::from_coefficients(&vec![0.5, 1.0, -1.5]));
+        assert_eq!(vec![0.5, 1.0, -1.5], poly1.get_coefficients());
     }
 }

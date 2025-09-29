@@ -7,32 +7,39 @@
 //! Instantiating a polynomial as the zero polynomial and setting the coefficients afterwards:
 //! 
 //! ```
-//! let mut poly = polynomials::Polynomial::zero();
+//! use polynomials::Polynomial;
 //! 
+//! let mut poly = Polynomial::zero();
 //! poly.set_coefficient_at(3, 1.0);
 //! poly.set_coefficient_at(2, -1.0);
 //! poly.set_coefficient_at(0, -2.0);
 //! 
-//! assert_eq!("x^3 - x^2 - 2", poly.to_string());
+//! assert_eq!(vec![1.0, -1.0, 0.0, -2.0], poly.get_coefficients());
 //! ```
 //! 
 //! Creating a polynomial from a vector of coefficients:
 //! ```
-//! let poly = polynomials::Polynomial::from_coefficients(&vec![1.0, 1.0, -2.0]);
-//! assert_eq!("x^2 + x - 2", poly.to_string());
+//! use polynomials::Polynomial;
+//! 
+//! let poly = Polynomial::from_coefficients(&vec![1.0, 1.0, -2.0]);
+//! assert_eq!(vec![1.0, 1.0, -2.0], poly.get_coefficients());
 //! ```
 //! 
 //! Creating a polynomial from a string:
 //! 
 //! ```
-//! let poly = polynomials::Polynomial::from_string("2x^2 + 3x - 1").unwrap();
-//! assert_eq!("2x^2 + 3x - 1", poly.to_string());
+//! use polynomials::Polynomial;
+//! 
+//! let poly = Polynomial::from_string("2x^2 + 3x - 1").unwrap();
+//! assert_eq!(vec![2.0, 3.0, -1.0], poly.get_coefficients());
 //! ```
 //! 
 //! ## Evaluating a Polynomial at a given x
 //! 
 //! ```
-//! let poly = polynomials::Polynomial::from_coefficients(&vec![2.0, -2.0, 0.0, -1.0]);
+//! use polynomials::Polynomial;
+//! 
+//! let poly = Polynomial::from_coefficients(&vec![2.0, -2.0, 0.0, -1.0]);
 //! let value = poly.evaluate(-2.0);
 //! assert_eq!(-25.0, value);
 //! ```
@@ -40,9 +47,12 @@
 //! ## Displaying a polynomial
 //! 
 //! ```
-//! let poly = polynomials::Polynomial::from_coefficients(&vec![2.0, -2.0, 0.0, -1.0]);
-//! println!("Q(x) = {}", poly);
-//! assert_eq!("2x^3 - 2x^2 - 1", poly.to_string());
+//! use polynomials::Polynomial;
+//! 
+//! let poly = Polynomial::from_coefficients(&vec![2.0, -2.0, 0.0, -1.0]);
+//! let poly_string = poly.to_string();
+//! println!("Q(x) = {}", poly_string);
+//! assert_eq!("2x^3 - 2x^2 - 1", poly_string);
 //! ```
 //! 
 //! ## Performing arithmetic operations on polynomials

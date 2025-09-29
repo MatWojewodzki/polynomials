@@ -84,31 +84,31 @@ mod tests {
     #[test]
     fn from_string_integer_coefficients() {
         let poly = Polynomial::from_string("-x^4 - 2x^3 + 10x2 - x + 5").unwrap();
-        assert_eq!(poly.to_string(), String::from("- x^4 - 2x^3 + 10x^2 - x + 5"));
+        assert_eq!(vec![-1.0, -2.0, 10.0, -1.0, 5.0], poly.get_coefficients());
     }
 
     #[test]
     fn from_string_decimal_coefficients() {
         let poly = Polynomial::from_string("1.5x^2 - 0.5x + 2.125").unwrap();
-        assert_eq!(poly.to_string(), String::from("1.5x^2 - 0.5x + 2.125"));
+        assert_eq!(vec![1.5, -0.5, 2.125], poly.get_coefficients());
     }
 
     #[test]
     fn from_string_concise_spacing() {
         let poly = Polynomial::from_string("x^2+x-5").unwrap();
-        assert_eq!(poly.to_string(), String::from("x^2 + x - 5"));
+        assert_eq!(vec![1.0, 1.0, -5.0], poly.get_coefficients());
     }
 
     #[test]
     fn from_string_omitted_carets() {
         let poly = Polynomial::from_string("x4 - 2x3 + 5x2 - x").unwrap();
-        assert_eq!(poly.to_string(), String::from("x^4 - 2x^3 + 5x^2 - x"));
+        assert_eq!(vec![1.0, -2.0, 5.0, -1.0, 0.0], poly.get_coefficients());
     }
 
     #[test]
     fn from_string_with_asterisks() {
         let poly = Polynomial::from_string("- 2 * x^2 -3*x + 5").unwrap();
-        assert_eq!(poly.to_string(), String::from("- 2x^2 - 3x + 5"));
+        assert_eq!(vec![-2.0, -3.0, 5.0], poly.get_coefficients());
     }
 
     #[test]

@@ -49,13 +49,13 @@ impl AddAssign<f64> for Polynomial {
 #[cfg(test)]
 mod tests {
     use super::Polynomial;
-    
+
     #[test]
     fn polynomial_add() {
         let poly1 = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
         let poly2 = Polynomial::from_coefficients(&vec![-2.0, -2.0, -1.0]);
         let poly3 = poly1 + poly2;
-        assert!(poly3 == Polynomial::from_coefficients(&vec![-1.0, 0.0, -4.0]));
+        assert_eq!(vec![-1.0, 0.0, -4.0], poly3.get_coefficients());
     }
 
     #[test]
@@ -63,6 +63,6 @@ mod tests {
         let mut poly1 = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
         let poly2 = Polynomial::from_coefficients(&vec![-2.0, -2.0, -1.0]);
         poly1 += poly2;
-        assert!(poly1 == Polynomial::from_coefficients(&vec![-1.0, 0.0, -4.0]));
+        assert_eq!(vec![-1.0, 0.0, -4.0], poly1.get_coefficients());
     }
 }
