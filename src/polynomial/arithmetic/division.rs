@@ -16,9 +16,24 @@ impl Div<f64> for Polynomial {
     }
 }
 
+impl Div<i32> for Polynomial {
+    type Output = Polynomial;
+
+    fn div(mut self, other: i32) -> Self::Output {
+        divide_by_scalar_in_place(&mut self, other as f64);
+        self
+    }
+}
+
 impl DivAssign<f64> for Polynomial {
     fn div_assign(&mut self, other: f64) {
         divide_by_scalar_in_place(self, other);
+    }
+}
+
+impl DivAssign<i32> for Polynomial {
+    fn div_assign(&mut self, other: i32) {
+        divide_by_scalar_in_place(self, other as f64);
     }
 }
 
@@ -27,16 +42,30 @@ mod tests {
     use super::Polynomial;
 
     #[test]
-    fn polynomial_div_float() {
-        let poly1 = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
-        let poly2 = poly1 / 2.0;
-        assert_eq!(vec![0.5, 1.0, -1.5], poly2.get_coefficients());
+    fn div_float() {
+        let poly = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
+        let poly_divided_by_two = poly / 2.0;
+        assert_eq!(vec![0.5, 1.0, -1.5], poly_divided_by_two.get_coefficients());
     }
 
     #[test]
-    fn polynomial_div_assign_float() {
-        let mut poly1 = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
-        poly1 /= 2.0;
-        assert_eq!(vec![0.5, 1.0, -1.5], poly1.get_coefficients());
+    fn div_int() {
+        let poly = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
+        let poly_divided_by_two = poly / 2;
+        assert_eq!(vec![0.5, 1.0, -1.5], poly_divided_by_two.get_coefficients());
+    }
+
+    #[test]
+    fn div_assign_float() {
+        let mut poly = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
+        poly /= 2.0;
+        assert_eq!(vec![0.5, 1.0, -1.5], poly.get_coefficients());
+    }
+
+    #[test]
+    fn div_assign_int() {
+        let mut poly = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
+        poly /= 2;
+        assert_eq!(vec![0.5, 1.0, -1.5], poly.get_coefficients());
     }
 }

@@ -46,12 +46,18 @@ impl AddAssign<f64> for Polynomial {
     }   
 }
 
+impl AddAssign<i32> for Polynomial {
+    fn add_assign(&mut self, other: i32) {
+        self.add_coefficient_at(0, other as f64);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Polynomial;
 
     #[test]
-    fn polynomial_add() {
+    fn add() {
         let poly1 = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
         let poly2 = Polynomial::from_coefficients(&vec![-2.0, -2.0, -1.0]);
         let poly3 = poly1 + poly2;
@@ -59,10 +65,38 @@ mod tests {
     }
 
     #[test]
-    fn polynomial_add_assign() {
+    fn add_float() {
+        let poly = Polynomial::from_coefficients(&vec![-2.0, 0.0, 1.0]);
+        let poly_plus_two = poly + 2.0;
+        assert_eq!(vec![-2.0, 0.0, 3.0], poly_plus_two.get_coefficients());
+    }
+
+    #[test]
+    fn add_int() {
+        let poly = Polynomial::from_coefficients(&vec![-2.0, 0.0, 1.0]);
+        let poly_plus_two = poly + 2;
+        assert_eq!(vec![-2.0, 0.0, 3.0], poly_plus_two.get_coefficients());
+    }
+
+    #[test]
+    fn add_assign() {
         let mut poly1 = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
         let poly2 = Polynomial::from_coefficients(&vec![-2.0, -2.0, -1.0]);
         poly1 += poly2;
         assert_eq!(vec![-1.0, 0.0, -4.0], poly1.get_coefficients());
+    }
+
+    #[test]
+    fn add_assign_float() {
+        let mut poly = Polynomial::from_coefficients(&vec![-2.0, 0.0, 1.0]);
+        poly += 2.0;
+        assert_eq!(vec![-2.0, 0.0, 3.0], poly.get_coefficients());
+    }
+
+    #[test]
+    fn add_assign_int() {
+        let mut poly = Polynomial::from_coefficients(&vec![-2.0, 0.0, 1.0]);
+        poly += 2;
+        assert_eq!(vec![-2.0, 0.0, 3.0], poly.get_coefficients());
     }
 }
