@@ -10,20 +10,67 @@ pub struct Polynomial {
 }
 
 impl Polynomial {
+    /// Returns a new polynomial with all coefficients set to zero.
     pub fn zero() -> Polynomial {
         Polynomial {
             coefficients: BTreeMap::new(),
         }
     }
 
+    /// Checks if the polynomial is a zero polynomial.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use polynomials::Polynomial;
+    ///
+    /// let mut poly = Polynomial::zero();
+    /// assert!(poly.is_zero());
+    ///
+    /// poly.set_coefficient_at(0, 3.0);
+    /// assert!(!poly.is_zero());
+    /// ```
     pub fn is_zero(&self) -> bool {
         self.coefficients.is_empty()
     }
 
+    /// Returns the degree of the polynomial.
+    ///
+    /// Returns `Some(u32)` if the polynomial is not the zero polynomial, otherwise returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// Get the degree of a quadratic polynomial:
+    /// ```
+    /// use polynomials::Polynomial;
+    ///
+    /// let poly = Polynomial::from_coefficients(&vec![2.0, -1.0, 1.0]);
+    /// let degree = poly.degree().unwrap();
+    /// assert_eq!(2, degree);
+    /// ```
+    ///
+    /// Degree of the zero polynomial is undefined:
+    /// ```
+    /// use polynomials::Polynomial;
+    ///
+    /// let poly = Polynomial::zero();
+    /// assert!(poly.degree().is_none());
+    /// ```
     pub fn degree(&self) -> Option<u32> {
         self.coefficients.keys().rev().next().copied()
     }
 
+    /// Sets all coefficients to zero.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use polynomials::Polynomial;
+    ///
+    /// let mut poly = Polynomial::from_coefficients(&vec![1.0, 2.0, -10.0, 5.0]);
+    /// poly.clear();
+    /// assert!(poly.is_zero());
+    /// ```
     pub fn clear(&mut self) {
         self.coefficients.clear();
     }
