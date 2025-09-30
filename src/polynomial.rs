@@ -11,6 +11,15 @@ pub struct Polynomial {
 
 impl Polynomial {
     /// Returns a new polynomial with all coefficients set to zero.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use polynomials::Polynomial;
+    ///
+    /// let poly = Polynomial::zero();
+    /// assert!(poly.is_zero());
+    /// ```
     pub fn zero() -> Polynomial {
         Polynomial {
             coefficients: BTreeMap::new(),
