@@ -2,6 +2,58 @@ use regex::Regex;
 use super::Polynomial;
 
 impl Polynomial {
+    /// Constructs a `Polynomial` instance from a given string representation.
+    ///
+    /// The function returns `Ok(Polynomial)` if parsing is successful or `Err(&str)` if the string
+    /// format was incorrect.
+    ///
+    /// # Supported string format
+    ///
+    /// The string must follow the pattern `<term> +/- <term> +/- ... +/- <term>` where each `<term>`
+    /// is of the form `<coefficient>x<power>`. Spaces between the terms and plus or minus signs
+    /// are optional. Terms of degree equal to one may be written as `<coefficient>x` or
+    /// `<coefficient>x1`, while in the terms of degree zero the `x` might be omitted entirely.
+    ///
+    /// Additionally:
+    /// - An asterisk `*` sign might be inserted after the coefficient, with optional
+    /// spaces around.
+    /// - A caret `^` character may be inserted before the power.
+    ///
+    /// Terms of the same degree may occur multiple times in the string.
+    /// Only the character `x` may be used as an indeterminate.
+    ///
+    /// # Examples
+    ///
+    /// Create a polynomial from a string with spaces between the terms:
+    /// ```
+    /// use polynomials::Polynomial;
+    ///
+    /// let poly = Polynomial::from_string("-3x2 + 4x - 5").unwrap();
+    /// assert_eq!(vec![-3.0, 4.0, -5.0], poly.get_coefficients());
+    /// ```
+    ///
+    /// Parse a string which uses concise syntax without spaces:
+    /// ```
+    /// use polynomials::Polynomial;
+    ///
+    /// let poly = Polynomial::from_string("2x5-x4+4x2-3").unwrap();
+    /// assert_eq!(vec![2.0, -1.0, 0.0, 4.0, 0.0, -3.0], poly.get_coefficients());
+    /// ```
+    ///
+    /// Parse a string which uses carets before the powers:
+    /// ```
+    /// use polynomials::Polynomial;
+    ///
+    /// let poly = Polynomial::from_string("x^4 - x^2 + x").unwrap();
+    /// assert_eq!(vec![1.0, 0.0, -1.0, 1.0, 0.0], poly.get_coefficients());
+    /// ```
+    ///
+    /// Parse a string which uses asterisks:
+    /// ```
+    /// use polynomials::Polynomial;
+    ///
+    /// let poly = Polynomial::from_string("-2 * x^2 -3*x + 5").unwrap();
+    /// ```
     pub fn from_string(string: &str) -> Result<Polynomial, &str> {
 
         let mut poly = Polynomial::zero();
@@ -62,7 +114,7 @@ impl Polynomial {
                 1.0
             };
 
-            poly.set_coefficient_at(power, coefficient * sign as f64);
+            poly.add_coefficient_at(power, coefficient * sign as f64);
         }
 
         // Compare captured terms and input string with spaces and newlines removed
@@ -109,6 +161,12 @@ mod tests {
     fn from_string_with_asterisks() {
         let poly = Polynomial::from_string("- 2 * x^2 -3*x + 5").unwrap();
         assert_eq!(vec![-2.0, -3.0, 5.0], poly.get_coefficients());
+    }
+
+    #[test]
+    fn from_string_with_repeated_terms() {
+        let poly = Polynomial::from_string("x^2 + x + x^2 - x + 5 - 10").unwrap();
+        assert_eq!(vec![2.0, 0.0, -5.0], poly.get_coefficients());
     }
 
     #[test]
