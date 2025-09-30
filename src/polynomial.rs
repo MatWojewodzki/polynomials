@@ -33,7 +33,9 @@ impl Polynomial {
     /// # Examples
     ///
     /// ```
-    /// let poly = polynomials::Polynomial::from_coefficients(&vec![1.0, 1.0, -2.0]);
+    /// use polynomials::Polynomial;
+    ///
+    /// let poly = Polynomial::from_coefficients(&vec![1.0, 1.0, -2.0]);
     /// let value = poly.evaluate(1.0);
     /// assert_eq!(0.0, value);
     pub fn evaluate(&self, x: f64) -> f64 {
@@ -48,6 +50,30 @@ impl Polynomial {
 
             result += coefficient;
             last_power = Some(*power);
+        }
+        result
+    }
+
+    /// Returns the derivative of a polynomial function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use polynomials::Polynomial;
+    ///
+    /// let poly = Polynomial::from_coefficients(&vec![1.0, -2.0, 0.0, -10.0]);
+    /// let derivative = poly.derivative();
+    /// assert_eq!(vec![3.0, -4.0, 0.0], derivative.get_coefficients());
+    /// ```
+    pub fn derivative(&self) -> Self {
+        let mut result = Polynomial::zero();
+        for (power, coefficient) in self.coefficients.iter() {
+
+            // Skip the zero-power term to avoid u32 subtraction with overflow
+            if *power < 1 {
+                continue;
+            }
+            result.set_coefficient_at(*power - 1, *coefficient * (*power as f64));
         }
         result
     }
@@ -107,5 +133,12 @@ mod tests {
     fn evaluate_works() {
         let poly = Polynomial::from_coefficients(&vec![3.0, 2.0, 0.0, -3.0]);
         assert_eq!(-19.0, poly.evaluate(-2.0));
+    }
+
+    #[test]
+    fn derivative_works() {
+        let poly = Polynomial::from_coefficients(&vec![3.0, 2.0, 0.0, -3.0]);
+        let derivative = poly.derivative();
+        assert_eq!(vec![9.0, 4.0, 0.0], derivative.get_coefficients());
     }
 }
