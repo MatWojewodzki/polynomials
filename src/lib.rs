@@ -1,5 +1,7 @@
 //! A library for working with univariate polynomials.
 //!
+//! The library exposes the [`Polynomial`] struct, which provides all the functionality.
+//!
 //! # Examples
 //! 
 //! ## Creating a Polynomial
