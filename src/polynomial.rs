@@ -4,6 +4,22 @@ mod parsing;
 mod arithmetic;
 pub mod display;
 
+/// Represents a univariate polynomial with real coefficients.
+///
+/// # Examples
+///
+/// Create a representation of a polynomial function `Q(x) = 2x^2 - 3x + 2` and calculate
+/// the value of its derivative at the point `x = 2`:
+/// ```
+/// use polynomials::Polynomial;
+///
+/// let poly = Polynomial::from_coefficients(&vec![2.0, -3.0, 2.0]);
+/// let derivative = poly.derivative();
+/// assert_eq!("4x - 3", derivative.to_string());
+///
+/// let value = derivative.evaluate(2.0);
+/// assert_eq!(5.0, value);
+/// ```
 #[derive(PartialEq, Debug)]
 pub struct Polynomial {
     coefficients: BTreeMap<u32, f64>,
