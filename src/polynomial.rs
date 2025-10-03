@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 mod coefficients;
 mod parsing;
 mod arithmetic;
-mod display;
+pub mod display;
 
 #[derive(PartialEq, Debug)]
 pub struct Polynomial {

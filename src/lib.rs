@@ -106,3 +106,4 @@
 mod polynomial;
 
 pub use polynomial::Polynomial;
+pub use polynomial::display::PolynomialFormat;
