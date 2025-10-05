@@ -20,7 +20,7 @@ pub mod display;
 /// let value = derivative.evaluate(2.0);
 /// assert_eq!(5.0, value);
 /// ```
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct Polynomial {
     coefficients: BTreeMap<u32, f64>,
 }
