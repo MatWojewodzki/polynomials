@@ -93,6 +93,12 @@
 //! assert_eq!(poly_times_five, poly * 5.0);
 //! 
 //! // division
+//! let numerator = Polynomial::from_coefficients(&vec![1.0, -2.0, -5.0, 6.0]);
+//! let denominator = Polynomial::from_coefficients(&vec![1.0, 2.0]);
+//! let div_result  = numerator / &denominator;
+//! assert_eq!(vec![1.0, -4.0, 3.0], div_result.quotient.get_coefficients());
+//! assert!(div_result.remainder.is_zero());
+//!
 //! let poly = Polynomial::from_coefficients(&vec![2.0, 0.0, -4.0]);
 //! let poly_divided_by_two = Polynomial::from_coefficients(&vec![1.0, 0.0, -2.0]);
 //! assert_eq!(poly_divided_by_two, poly / 2.0);
