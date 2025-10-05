@@ -3,6 +3,6 @@
 Rust library crate for working with univariate polynomials.
 
 ## TODO list:
-- implement the division of two polynomials
+- split the documentation of arithmetic operations into separate code blocks in the crate documentation
+- publish the create on crates.io
 - add more content to this README file
-- add support for multivariate polynomials
