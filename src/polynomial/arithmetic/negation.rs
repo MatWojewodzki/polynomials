@@ -4,11 +4,8 @@ use super::Polynomial;
 impl Neg for Polynomial {
     type Output = Polynomial;
 
-    fn neg(mut self) -> Self::Output {
-        for (_, coefficient) in self.coefficients.iter_mut() {
-            *coefficient *= -1.0;
-        }
-        self
+    fn neg(self) -> Self::Output {
+        self * -1
     }
 }
 
