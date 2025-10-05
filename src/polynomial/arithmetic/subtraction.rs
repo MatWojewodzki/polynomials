@@ -7,11 +7,11 @@ fn subtract_in_place(poly1: &mut Polynomial, poly2: &Polynomial) {
     }
 }
 
-impl Sub for Polynomial {
+impl Sub<&Self> for Polynomial {
     type Output = Polynomial;
 
-    fn sub(mut self, other: Self) -> Self::Output {
-        subtract_in_place(&mut self, &other);
+    fn sub(mut self, rhs: &Self) -> Self::Output {
+        subtract_in_place(&mut self, rhs);
         self
     }
 }
@@ -19,8 +19,8 @@ impl Sub for Polynomial {
 impl Sub<f64> for Polynomial {
     type Output = Polynomial;
 
-    fn sub(mut self, other: f64) -> Self::Output {
-        self.sub_coefficient_at(0, other);
+    fn sub(mut self, rhs: f64) -> Self::Output {
+        self.sub_coefficient_at(0, rhs);
         self
     }
 }
@@ -28,27 +28,27 @@ impl Sub<f64> for Polynomial {
 impl Sub<i32> for Polynomial {
     type Output = Polynomial;
 
-    fn sub(mut self, other: i32) -> Self::Output {
-        self.sub_coefficient_at(0, other as f64);
+    fn sub(mut self, rhs: i32) -> Self::Output {
+        self.sub_coefficient_at(0, rhs as f64);
         self
     }
 }
 
-impl SubAssign for Polynomial {
-    fn sub_assign(&mut self, other: Self) {
-        subtract_in_place(self, &other);
+impl SubAssign<&Self> for Polynomial {
+    fn sub_assign(&mut self, rhs: &Self) {
+        subtract_in_place(self, rhs);
     }
 }
 
 impl SubAssign<f64> for Polynomial {
-    fn sub_assign(&mut self, other: f64) {
-        self.sub_coefficient_at(0, other);
+    fn sub_assign(&mut self, rhs: f64) {
+        self.sub_coefficient_at(0, rhs);
     }
 }
 
 impl SubAssign<i32> for Polynomial {
-    fn sub_assign(&mut self, other: i32) {
-        self.sub_coefficient_at(0, other as f64);
+    fn sub_assign(&mut self, rhs: i32) {
+        self.sub_coefficient_at(0, rhs as f64);
     }
 }
 
@@ -60,7 +60,7 @@ mod tests {
     fn sub() {
         let poly1 = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
         let poly2 = Polynomial::from_coefficients(&vec![-2.0, 2.0, -1.0]);
-        let poly3 = poly1 - poly2;
+        let poly3 = poly1 - &poly2;
         assert_eq!(vec![3.0, 0.0, -2.0], poly3.get_coefficients());
     }
 
@@ -82,7 +82,7 @@ mod tests {
     fn sub_assign() {
         let mut poly1 = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
         let poly2 = Polynomial::from_coefficients(&vec![-2.0, 2.0, -1.0]);
-        poly1 -= poly2;
+        poly1 -= &poly2;
         assert_eq!(vec![3.0, 0.0, -2.0], poly1.get_coefficients());
     }
 

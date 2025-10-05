@@ -20,19 +20,19 @@ fn multiply_in_place_by_scalar(poly: &mut Polynomial, scalar: f64) {
     }
 }
 
-impl Mul for Polynomial {
+impl Mul<&Self> for Polynomial {
     type Output = Polynomial;
 
-    fn mul(self, other: Self) -> Self::Output {
-        multiply(&self, &other)
+    fn mul(self, rhs: &Self) -> Self::Output {
+        multiply(&self, rhs)
     }
 }
 
 impl Mul<f64> for Polynomial {
     type Output = Polynomial;
 
-    fn mul(mut self, other: f64) -> Self::Output {
-        multiply_in_place_by_scalar(&mut self, other);
+    fn mul(mut self, rhs: f64) -> Self::Output {
+        multiply_in_place_by_scalar(&mut self, rhs);
         self
     }
 }
@@ -40,27 +40,27 @@ impl Mul<f64> for Polynomial {
 impl Mul<i32> for Polynomial {
     type Output = Polynomial;
 
-    fn mul(mut self, other: i32) -> Self::Output {
-        multiply_in_place_by_scalar(&mut self, other as f64);
+    fn mul(mut self, rhs: i32) -> Self::Output {
+        multiply_in_place_by_scalar(&mut self, rhs as f64);
         self
     }
 }
 
-impl MulAssign for Polynomial {
-    fn mul_assign(&mut self, other: Self) {
-        *self = multiply(&self, &other);
+impl MulAssign<&Self> for Polynomial {
+    fn mul_assign(&mut self, rhs: &Self) {
+        *self = multiply(&self, rhs);
     }
 }
 
 impl MulAssign<f64> for Polynomial {
-    fn mul_assign(&mut self, other: f64) {
-        multiply_in_place_by_scalar(self, other);
+    fn mul_assign(&mut self, rhs: f64) {
+        multiply_in_place_by_scalar(self, rhs);
     }
 }
 
 impl MulAssign<i32> for Polynomial {
-    fn mul_assign(&mut self, other: i32) {
-        multiply_in_place_by_scalar(self, other as f64);
+    fn mul_assign(&mut self, rhs: i32) {
+        multiply_in_place_by_scalar(self, rhs as f64);
     }
 }
 
@@ -72,7 +72,7 @@ mod tests {
     fn mul() {
         let poly1 = Polynomial::from_coefficients(&vec![1.0, -2.0]);
         let poly2 = Polynomial::from_coefficients(&vec![-2.0, 0.0, 3.0]);
-        let poly3 = poly1 * poly2;
+        let poly3 = poly1 * &poly2;
         assert_eq!(vec![-2.0, 4.0, 3.0, -6.0], poly3.get_coefficients());
     }
 
@@ -94,7 +94,7 @@ mod tests {
     fn mul_assign() {
         let mut poly1 = Polynomial::from_coefficients(&vec![1.0, -2.0]);
         let poly2 = Polynomial::from_coefficients(&vec![-2.0, 0.0, 3.0]);
-        poly1 *= poly2;
+        poly1 *= &poly2;
         assert_eq!(vec![-2.0, 4.0, 3.0, -6.0], poly1.get_coefficients());
     }
 

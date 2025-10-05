@@ -7,11 +7,11 @@ fn add_in_place(poly1: &mut Polynomial, poly2: &Polynomial) {
     }
 }
 
-impl Add for Polynomial {
+impl Add<&Self> for Polynomial {
     type Output = Polynomial;
 
-    fn add(mut self, other: Self) -> Self::Output {
-        add_in_place(&mut self, &other);
+    fn add(mut self, rhs: &Self) -> Self::Output {
+        add_in_place(&mut self, rhs);
         self
     }
 }
@@ -19,8 +19,8 @@ impl Add for Polynomial {
 impl Add<f64> for Polynomial {
     type Output = Polynomial;
     
-    fn add(mut self, other: f64) -> Self::Output {
-        self.add_coefficient_at(0, other);
+    fn add(mut self, rhs: f64) -> Self::Output {
+        self.add_coefficient_at(0, rhs);
         self
     }
 }
@@ -28,27 +28,27 @@ impl Add<f64> for Polynomial {
 impl Add<i32> for Polynomial {
     type Output = Polynomial;
     
-    fn add(mut self, other: i32) -> Self::Output {
-        self.add_coefficient_at(0, other as f64);
+    fn add(mut self, rhs: i32) -> Self::Output {
+        self.add_coefficient_at(0, rhs as f64);
         self
     }
 }
 
-impl AddAssign for Polynomial {
-    fn add_assign(&mut self, other: Self) {
-        add_in_place(self, &other);    
+impl AddAssign<&Self> for Polynomial {
+    fn add_assign(&mut self, rhs: &Self) {
+        add_in_place(self, rhs);
     }
 }
 
 impl AddAssign<f64> for Polynomial {
-    fn add_assign(&mut self, other: f64) {
-        self.add_coefficient_at(0, other);
+    fn add_assign(&mut self, rhs: f64) {
+        self.add_coefficient_at(0, rhs);
     }   
 }
 
 impl AddAssign<i32> for Polynomial {
-    fn add_assign(&mut self, other: i32) {
-        self.add_coefficient_at(0, other as f64);
+    fn add_assign(&mut self, rhs: i32) {
+        self.add_coefficient_at(0, rhs as f64);
     }
 }
 
@@ -60,7 +60,7 @@ mod tests {
     fn add() {
         let poly1 = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
         let poly2 = Polynomial::from_coefficients(&vec![-2.0, -2.0, -1.0]);
-        let poly3 = poly1 + poly2;
+        let poly3 = poly1 + &poly2;
         assert_eq!(vec![-1.0, 0.0, -4.0], poly3.get_coefficients());
     }
 
@@ -82,7 +82,7 @@ mod tests {
     fn add_assign() {
         let mut poly1 = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
         let poly2 = Polynomial::from_coefficients(&vec![-2.0, -2.0, -1.0]);
-        poly1 += poly2;
+        poly1 += &poly2;
         assert_eq!(vec![-1.0, 0.0, -4.0], poly1.get_coefficients());
     }
 

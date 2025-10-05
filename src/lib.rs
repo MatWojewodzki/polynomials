@@ -66,7 +66,7 @@
 //! let term1 = Polynomial::from_coefficients(&vec![2.0, -2.0, 0.0, -1.0]);
 //! let term2 = Polynomial::from_coefficients(&vec![1.0, 1.0, -2.0]);
 //! let sum = Polynomial::from_coefficients(&vec![2.0, -1.0, 1.0, -3.0]);
-//! assert_eq!(sum, term1 + term2);
+//! assert_eq!(sum, term1 + &term2);
 //! 
 //! let poly = Polynomial::from_coefficients(&vec![1.0, 0.0]);
 //! let poly_plus_five = Polynomial::from_coefficients(&vec![1.0, 5.0]);
@@ -76,7 +76,7 @@
 //! let term1 = Polynomial::from_coefficients(&vec![1.0, 1.0, -2.0]);
 //! let term2 = Polynomial::from_coefficients(&vec![2.0, -2.0, 0.0, -1.0]);
 //! let difference = Polynomial::from_coefficients(&vec![-2.0, 3.0, 1.0, -1.0]);
-//! assert_eq!(difference, term1 - term2);
+//! assert_eq!(difference, term1 - &term2);
 //! 
 //! let poly = Polynomial::from_coefficients(&vec![1.0, 0.0]);
 //! let poly_minus_five = Polynomial::from_coefficients(&vec![1.0, -5.0]);
@@ -86,7 +86,7 @@
 //! let factor1 = Polynomial::from_coefficients(&vec![1.0, -1.0]);
 //! let factor2 = Polynomial::from_coefficients(&vec![1.0, 2.0]);
 //! let product = Polynomial::from_coefficients(&vec![1.0, 1.0, -2.0]);
-//! assert_eq!(product, factor1 * factor2);
+//! assert_eq!(product, factor1 * &factor2);
 //! 
 //! let poly = Polynomial::from_coefficients(&vec![1.0, -2.0]);
 //! let poly_times_five = Polynomial::from_coefficients(&vec![5.0, -10.0]);

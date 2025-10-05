@@ -10,8 +10,8 @@ fn divide_by_scalar_in_place(poly: &mut Polynomial, scalar: f64) {
 impl Div<f64> for Polynomial {
     type Output = Polynomial;
 
-    fn div(mut self, other: f64) -> Self::Output {
-        divide_by_scalar_in_place(&mut self, other);
+    fn div(mut self, rhs: f64) -> Self::Output {
+        divide_by_scalar_in_place(&mut self, rhs);
         self
     }
 }
@@ -19,21 +19,36 @@ impl Div<f64> for Polynomial {
 impl Div<i32> for Polynomial {
     type Output = Polynomial;
 
-    fn div(mut self, other: i32) -> Self::Output {
-        divide_by_scalar_in_place(&mut self, other as f64);
+    fn div(mut self, rhs: i32) -> Self::Output {
+        divide_by_scalar_in_place(&mut self, rhs as f64);
         self
     }
 }
 
 impl DivAssign<f64> for Polynomial {
-    fn div_assign(&mut self, other: f64) {
-        divide_by_scalar_in_place(self, other);
+    fn div_assign(&mut self, rhs: f64) {
+        divide_by_scalar_in_place(self, rhs);
     }
 }
 
 impl DivAssign<i32> for Polynomial {
-    fn div_assign(&mut self, other: i32) {
-        divide_by_scalar_in_place(self, other as f64);
+    fn div_assign(&mut self, rhs: i32) {
+        divide_by_scalar_in_place(self, rhs as f64);
+    }
+}
+
+impl Rem<&Self> for Polynomial {
+    type Output = Polynomial;
+
+    fn rem(mut self, rhs: &Self) -> Self::Output {
+        divide_in_place(&mut self, rhs);
+        self
+    }
+}
+
+impl RemAssign<&Self> for Polynomial {
+    fn rem_assign(&mut self, rhs: &Self) {
+        divide_in_place(self, rhs);
     }
 }
 
