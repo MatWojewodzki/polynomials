@@ -58,7 +58,7 @@ impl Polynomial {
         Ok(())
     }
 
-    /// Returns the polynomial as a `String` in the specified format.
+    /// Returns the polynomial as a [`String`] in the specified [format](PolynomialFormat).
     ///
     /// # Examples
     ///

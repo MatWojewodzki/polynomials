@@ -2,7 +2,7 @@ use regex::Regex;
 use super::Polynomial;
 
 impl Polynomial {
-    /// Constructs a `Polynomial` instance from a given string representation.
+    /// Constructs a new instance from a given polynomial string representation.
     ///
     /// The function returns `Ok(Polynomial)` if parsing is successful or `Err(&str)` if the string
     /// format was incorrect.

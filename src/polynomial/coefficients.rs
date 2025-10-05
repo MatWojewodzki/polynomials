@@ -107,14 +107,14 @@ impl Polynomial {
         self.set_coefficient_at(power, self.get_coefficient_at(power) / coefficient);
     }
 
-    /// Creates a `Polynomial` instance from a vector of coefficients.
+    /// Creates a new instance from a vector of coefficients.
     ///
     /// The coefficients must specify subsequent terms sorted by their degree in descending order,
     /// with the last coefficient in the vector specifying the term of degree zero.
     ///
     /// # Examples
     ///
-    /// Represent quadratic polynomial `x^2 + x -2` as a `Polynomial` instance:
+    /// Represent quadratic polynomial `x^2 + x - 2` as a [`Polynomial`] instance:
     /// ```
     /// use polynomials::Polynomial;
     ///
