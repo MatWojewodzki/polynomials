@@ -37,7 +37,7 @@ fn divide_terms(term1: Term, term2: Term) -> Polynomial {
 /// remainder of the division.
 fn divide_in_place(numerator: &mut Polynomial, denominator: &Polynomial) -> Polynomial {
     if denominator.is_zero() {
-        panic!("Cannot divide_in_place by the zero polynomial.");
+        panic!("Cannot divide by the zero polynomial.");
     }
 
     let mut quotient = Polynomial::zero();
@@ -55,6 +55,9 @@ fn divide_in_place(numerator: &mut Polynomial, denominator: &Polynomial) -> Poly
 }
 
 fn divide_by_scalar_in_place(poly: &mut Polynomial, scalar: f64) {
+    if scalar == 0.0 {
+        panic!("Cannot divide by zero.");
+    }
     for (_, coefficient) in poly.coefficients.iter_mut() {
         *coefficient /= scalar;
     }
@@ -186,5 +189,26 @@ mod tests {
         let divisor = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
         poly %= &divisor;
         assert_eq!(vec![-2.0, 3.0], poly.get_coefficients());
+    }
+
+    #[test]
+    #[should_panic(expected = "Cannot divide")]
+    fn div_by_zero_polynomial() {
+        let poly = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
+        let _ = poly / &Polynomial::zero();
+    }
+
+    #[test]
+    #[should_panic(expected = "Cannot divide")]
+    fn div_by_zero_float() {
+        let poly = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
+        let _ = poly / 0.0;
+    }
+
+    #[test]
+    #[should_panic(expected = "Cannot divide")]
+    fn div_by_zero_int() {
+        let poly = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
+        let _ = poly / 0;
     }
 }
