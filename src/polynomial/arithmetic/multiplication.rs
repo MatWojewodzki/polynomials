@@ -15,6 +15,11 @@ fn multiply(poly1: &Polynomial, poly2: &Polynomial) -> Polynomial {
 }
 
 fn multiply_in_place_by_scalar(poly: &mut Polynomial, scalar: f64) {
+    // Prevent zeros from being present in the map
+    if scalar == 0.0 {
+        *poly = Polynomial::zero();
+        return;
+    }
     for (_, coefficient) in poly.coefficients.iter_mut() {
         *coefficient *= scalar;
     }
@@ -110,5 +115,12 @@ mod tests {
         let mut poly = Polynomial::from_coefficients(&vec![-2.0, 0.0, 1.0]);
         poly *= 2;
         assert_eq!(vec![-4.0, 0.0, 2.0], poly.get_coefficients());
+    }
+
+    #[test]
+    fn mul_by_scalar_zero() {
+        let poly = Polynomial::from_coefficients(&vec![-2.0, 0.0, 1.0]);
+        let poly_times_zero = poly * 0.0;
+        assert_eq!(Polynomial::zero(), poly_times_zero);
     }
 }
