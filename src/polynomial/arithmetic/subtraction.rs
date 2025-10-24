@@ -1,14 +1,21 @@
 use std::ops::{Sub, SubAssign};
+use num::Num;
 use super::Polynomial;
 
-fn subtract_in_place(poly1: &mut Polynomial, poly2: &Polynomial) {
+fn subtract_in_place<T>(poly1: &mut Polynomial<T>, poly2: &Polynomial<T>)
+where
+    T: Num + Clone
+{
     for (power, coefficient) in poly2.coefficients.iter() {
-        poly1.sub_coefficient_at(*power, *coefficient);
+        poly1.sub_coefficient_at(*power, coefficient.clone());
     }
 }
 
-impl Sub<&Self> for Polynomial {
-    type Output = Polynomial;
+impl<T> Sub<&Self> for Polynomial<T>
+where
+    T: Num + Clone
+{
+    type Output = Polynomial<T>;
 
     fn sub(mut self, rhs: &Self) -> Self::Output {
         subtract_in_place(&mut self, rhs);
@@ -16,39 +23,33 @@ impl Sub<&Self> for Polynomial {
     }
 }
 
-impl Sub<f64> for Polynomial {
-    type Output = Polynomial;
+impl<T> Sub<T> for Polynomial<T>
+where
+    T: Num + Clone
+{
+    type Output = Polynomial<T>;
 
-    fn sub(mut self, rhs: f64) -> Self::Output {
+    fn sub(mut self, rhs: T) -> Self::Output {
         self.sub_coefficient_at(0, rhs);
         self
     }
 }
 
-impl Sub<i32> for Polynomial {
-    type Output = Polynomial;
-
-    fn sub(mut self, rhs: i32) -> Self::Output {
-        self.sub_coefficient_at(0, rhs as f64);
-        self
-    }
-}
-
-impl SubAssign<&Self> for Polynomial {
+impl<T> SubAssign<&Self> for Polynomial<T>
+where
+    T: Num + Clone
+{
     fn sub_assign(&mut self, rhs: &Self) {
         subtract_in_place(self, rhs);
     }
 }
 
-impl SubAssign<f64> for Polynomial {
-    fn sub_assign(&mut self, rhs: f64) {
+impl<T> SubAssign<T> for Polynomial<T>
+where
+    T: Num + Clone
+{
+    fn sub_assign(&mut self, rhs: T) {
         self.sub_coefficient_at(0, rhs);
-    }
-}
-
-impl SubAssign<i32> for Polynomial {
-    fn sub_assign(&mut self, rhs: i32) {
-        self.sub_coefficient_at(0, rhs as f64);
     }
 }
 
@@ -65,16 +66,9 @@ mod tests {
     }
 
     #[test]
-    fn sub_float() {
+    fn sub_scalar() {
         let poly = Polynomial::from_coefficients(&vec![-2.0, 0.0, 1.0]);
         let poly_minus_two = poly - 2.0;
-        assert_eq!(vec![-2.0, 0.0, -1.0], poly_minus_two.get_coefficients());
-    }
-
-    #[test]
-    fn sub_int() {
-        let poly = Polynomial::from_coefficients(&vec![-2.0, 0.0, 1.0]);
-        let poly_minus_two = poly - 2;
         assert_eq!(vec![-2.0, 0.0, -1.0], poly_minus_two.get_coefficients());
     }
 
@@ -87,16 +81,9 @@ mod tests {
     }
 
     #[test]
-    fn sub_assign_float() {
+    fn sub_assign_scalar() {
         let mut poly = Polynomial::from_coefficients(&vec![-2.0, 0.0, 1.0]);
         poly -= 2.0;
-        assert_eq!(vec![-2.0, 0.0, -1.0], poly.get_coefficients());
-    }
-
-    #[test]
-    fn sub_assign_int() {
-        let mut poly = Polynomial::from_coefficients(&vec![-2.0, 0.0, 1.0]);
-        poly -= 2;
         assert_eq!(vec![-2.0, 0.0, -1.0], poly.get_coefficients());
     }
 }

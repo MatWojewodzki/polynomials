@@ -1,7 +1,16 @@
+use std::fmt::Debug;
+use std::str::FromStr;
+use num::Num;
 use regex::Regex;
 use super::Polynomial;
 
-impl Polynomial {
+impl<T> FromStr for Polynomial<T>
+where
+    T: Clone + FromStr + Num,
+    <T as FromStr>::Err: Debug
+{
+    type Err = &'static str;
+
     /// Constructs a new instance from a given polynomial string representation.
     ///
     /// The function returns `Ok(Polynomial)` if parsing is successful or `Err(&str)` if the string
@@ -28,7 +37,7 @@ impl Polynomial {
     /// ```
     /// use polynomials::Polynomial;
     ///
-    /// let poly = Polynomial::from_string("-3x2 + 4x - 5").unwrap();
+    /// let poly = Polynomial::from_str("-3x2 + 4x - 5").unwrap();
     /// assert_eq!(vec![-3.0, 4.0, -5.0], poly.get_coefficients());
     /// ```
     ///
@@ -36,7 +45,7 @@ impl Polynomial {
     /// ```
     /// use polynomials::Polynomial;
     ///
-    /// let poly = Polynomial::from_string("2x5-x4+4x2-3").unwrap();
+    /// let poly = Polynomial::from_str("2x5-x4+4x2-3").unwrap();
     /// assert_eq!(vec![2.0, -1.0, 0.0, 4.0, 0.0, -3.0], poly.get_coefficients());
     /// ```
     ///
@@ -44,7 +53,7 @@ impl Polynomial {
     /// ```
     /// use polynomials::Polynomial;
     ///
-    /// let poly = Polynomial::from_string("x^4 - x^2 + x").unwrap();
+    /// let poly = Polynomial::from_str("x^4 - x^2 + x").unwrap();
     /// assert_eq!(vec![1.0, 0.0, -1.0, 1.0, 0.0], poly.get_coefficients());
     /// ```
     ///
@@ -52,14 +61,14 @@ impl Polynomial {
     /// ```
     /// use polynomials::Polynomial;
     ///
-    /// let poly = Polynomial::from_string("-2 * x^2 -3*x + 5").unwrap();
+    /// let poly = Polynomial::from_str("-2 * x^2 -3*x + 5").unwrap();
     /// ```
-    pub fn from_string(string: &str) -> Result<Polynomial, &str> {
+    fn from_str(string: &str) -> Result<Self, Self::Err> {
 
         let mut poly = Polynomial::zero();
         let err = Err("Invalid string format.");
 
-        let pat = r"(?<sign>[+-])[ \n]*(?<coefficient>\d+(\.\d*)?)?[ \n]*\*?[ \n]*(?<variable>x)?(?:\^?(?<power>\d+))?";
+        let pat = r"(?<sign>[+-])[ \n]*(?<coefficient>.+)?[ \n]*\*?[ \n]*(?<variable>x)?(?:\^?(?<power>\d+))?";
         let re = Regex::new(pat).unwrap();
 
         // Add a trailing sign if it is not present
@@ -67,9 +76,9 @@ impl Polynomial {
             if c == '-' || c == '+' {
                 string.trim()
             } else {
-                &format!("+ {}", string)
+                &format!("+ {}", string.trim())
             }
-        } else{
+        } else {
             return Ok(poly)
         };
 
@@ -79,14 +88,15 @@ impl Polynomial {
 
             captured_terms.push_str(&caps[0]);
 
-            let sign: i8 = match caps.name("sign").unwrap().as_str() {
-                "+" => 1,
-                "-" => -1,
+            let sign: T = match caps.name("sign").unwrap().as_str() {
+                "+" => T::one(),
+                "-" => T::zero() - T::one(),
                 _ => panic!("Sign was supposed to be '+' or '-'.")
             };
 
-            let coefficient: Option<f64> = if let Some(mat) = caps.name("coefficient") {
-                Some(mat.as_str().parse().unwrap())
+            let coefficient: Option<T> = if let Some(mat) = caps.name("coefficient") {
+                // TODO: Proper error handling needed here instead of unwrap
+                Some(T::from_str(mat.as_str()).unwrap())
             } else {
                 None
             };
@@ -107,14 +117,14 @@ impl Polynomial {
                 1
             };
 
-            // In the case of no coefficient default to 1.0
+            // In the case of no coefficient default to 1
             let coefficient = if let Some(coefficient) = coefficient {
                 coefficient
             } else {
-                1.0
+                T::one()
             };
 
-            poly.add_coefficient_at(power, coefficient * sign as f64);
+            poly.add_coefficient_at(power, coefficient * sign);
         }
 
         // Compare captured terms and input string with spaces and newlines removed
@@ -131,54 +141,55 @@ impl Polynomial {
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
     use super::Polynomial;
 
     #[test]
     fn from_string_integer_coefficients() {
-        let poly = Polynomial::from_string("-x^4 - 2x^3 + 10x2 - x + 5").unwrap();
+        let poly = Polynomial::from_str("-x^4 - 2x^3 + 10x2 - x + 5").unwrap();
         assert_eq!(vec![-1.0, -2.0, 10.0, -1.0, 5.0], poly.get_coefficients());
     }
 
     #[test]
     fn from_string_decimal_coefficients() {
-        let poly = Polynomial::from_string("1.5x^2 - 0.5x + 2.125").unwrap();
+        let poly = Polynomial::from_str("1.5x^2 - 0.5x + 2.125").unwrap();
         assert_eq!(vec![1.5, -0.5, 2.125], poly.get_coefficients());
     }
 
     #[test]
     fn from_string_concise_spacing() {
-        let poly = Polynomial::from_string("x^2+x-5").unwrap();
+        let poly = Polynomial::from_str("x^2+x-5").unwrap();
         assert_eq!(vec![1.0, 1.0, -5.0], poly.get_coefficients());
     }
 
     #[test]
     fn from_string_omitted_carets() {
-        let poly = Polynomial::from_string("x4 - 2x3 + 5x2 - x").unwrap();
+        let poly = Polynomial::from_str("x4 - 2x3 + 5x2 - x").unwrap();
         assert_eq!(vec![1.0, -2.0, 5.0, -1.0, 0.0], poly.get_coefficients());
     }
 
     #[test]
     fn from_string_with_asterisks() {
-        let poly = Polynomial::from_string("- 2 * x^2 -3*x + 5").unwrap();
+        let poly = Polynomial::from_str("- 2 * x^2 -3*x + 5").unwrap();
         assert_eq!(vec![-2.0, -3.0, 5.0], poly.get_coefficients());
     }
 
     #[test]
     fn from_string_with_repeated_terms() {
-        let poly = Polynomial::from_string("x^2 + x + x^2 - x + 5 - 10").unwrap();
+        let poly = Polynomial::from_str("x^2 + x + x^2 - x + 5 - 10").unwrap();
         assert_eq!(vec![2.0, 0.0, -5.0], poly.get_coefficients());
     }
 
     #[test]
     fn from_string_invalid_formats() {
-        assert!(Polynomial::from_string("x^2 + + 3x").is_err());
-        assert!(Polynomial::from_string("2y^2 + 3y").is_err());
-        assert!(Polynomial::from_string("2x^2.5").is_err());
+        assert!(Polynomial::<f64>::from_str("x^2 + + 3x").is_err());
+        assert!(Polynomial::<f64>::from_str("2y^2 + 3y").is_err());
+        assert!(Polynomial::<f64>::from_str("2x^2.5").is_err());
     }
 
     #[test]
     fn from_string_empty() {
-        let poly = Polynomial::from_string("").unwrap();
+        let poly: Polynomial<f64> = Polynomial::from_str("").unwrap();
         assert!(poly.is_zero());
     }
 }

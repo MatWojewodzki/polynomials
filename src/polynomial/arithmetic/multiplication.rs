@@ -1,71 +1,75 @@
 use std::ops::{Mul, MulAssign};
+use num::Num;
 use super::Polynomial;
 
-fn multiply(poly1: &Polynomial, poly2: &Polynomial) -> Polynomial {
+fn multiply<T>(poly1: &Polynomial<T>, poly2: &Polynomial<T>) -> Polynomial<T>
+where
+    T: Num + Clone + Mul<Output = T>
+{
     let mut poly = Polynomial::zero();
     for (power, coefficient) in poly1.coefficients.iter() {
         for (other_power, other_coefficient) in poly2.coefficients.iter() {
             poly.add_coefficient_at(
                 *power + *other_power,
-                *coefficient * *other_coefficient
+                coefficient.clone() * other_coefficient.clone()
             );
         }
     }
     poly
 }
 
-fn multiply_in_place_by_scalar(poly: &mut Polynomial, scalar: f64) {
+fn multiply_in_place_by_scalar<T>(poly: &mut Polynomial<T>, scalar: T)
+where
+    T: Num + Clone 
+{
     // Prevent zeros from being present in the map
-    if scalar == 0.0 {
+    if scalar == T::zero() {
         *poly = Polynomial::zero();
         return;
     }
     for (_, coefficient) in poly.coefficients.iter_mut() {
-        *coefficient *= scalar;
+        *coefficient = coefficient.clone() * scalar.clone();
     }
 }
 
-impl Mul<&Self> for Polynomial {
-    type Output = Polynomial;
+impl<T> Mul<&Self> for Polynomial<T>
+where
+    T: Num + Clone
+{
+    type Output = Polynomial<T>;
 
     fn mul(self, rhs: &Self) -> Self::Output {
         multiply(&self, rhs)
     }
 }
 
-impl Mul<f64> for Polynomial {
-    type Output = Polynomial;
+impl<T> Mul<T> for Polynomial<T>
+where
+    T: Num + Clone 
+{
+    type Output = Polynomial<T>;
 
-    fn mul(mut self, rhs: f64) -> Self::Output {
+    fn mul(mut self, rhs: T) -> Self::Output {
         multiply_in_place_by_scalar(&mut self, rhs);
         self
     }
 }
 
-impl Mul<i32> for Polynomial {
-    type Output = Polynomial;
-
-    fn mul(mut self, rhs: i32) -> Self::Output {
-        multiply_in_place_by_scalar(&mut self, rhs as f64);
-        self
-    }
-}
-
-impl MulAssign<&Self> for Polynomial {
+impl<T> MulAssign<&Self> for Polynomial<T>
+where
+    T: Num + Clone
+{
     fn mul_assign(&mut self, rhs: &Self) {
         *self = multiply(&self, rhs);
     }
 }
 
-impl MulAssign<f64> for Polynomial {
-    fn mul_assign(&mut self, rhs: f64) {
+impl<T> MulAssign<T> for Polynomial<T>
+where
+    T: Num + Clone 
+{
+    fn mul_assign(&mut self, rhs: T) {
         multiply_in_place_by_scalar(self, rhs);
-    }
-}
-
-impl MulAssign<i32> for Polynomial {
-    fn mul_assign(&mut self, rhs: i32) {
-        multiply_in_place_by_scalar(self, rhs as f64);
     }
 }
 
@@ -82,16 +86,9 @@ mod tests {
     }
 
     #[test]
-    fn mul_float() {
+    fn mul_scalar() {
         let poly = Polynomial::from_coefficients(&vec![-2.0, 0.0, 1.0]);
         let poly_times_two = poly * 2.0;
-        assert_eq!(vec![-4.0, 0.0, 2.0], poly_times_two.get_coefficients());
-    }
-
-    #[test]
-    fn mul_int() {
-        let poly = Polynomial::from_coefficients(&vec![-2.0, 0.0, 1.0]);
-        let poly_times_two = poly * 2;
         assert_eq!(vec![-4.0, 0.0, 2.0], poly_times_two.get_coefficients());
     }
 
@@ -104,19 +101,13 @@ mod tests {
     }
 
     #[test]
-    fn mul_assign_float() {
+    fn mul_assign_scalar() {
         let mut poly = Polynomial::from_coefficients(&vec![-2.0, 0.0, 1.0]);
         poly *= 2.0;
         assert_eq!(vec![-4.0, 0.0, 2.0], poly.get_coefficients());
     }
 
-    #[test]
-    fn mul_assign_int() {
-        let mut poly = Polynomial::from_coefficients(&vec![-2.0, 0.0, 1.0]);
-        poly *= 2;
-        assert_eq!(vec![-4.0, 0.0, 2.0], poly.get_coefficients());
-    }
-
+    /// Check whether the polynomial is normalised correctly after the multiplication
     #[test]
     fn mul_by_scalar_zero() {
         let poly = Polynomial::from_coefficients(&vec![-2.0, 0.0, 1.0]);

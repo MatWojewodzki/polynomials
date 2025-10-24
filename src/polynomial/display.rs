@@ -1,5 +1,9 @@
+use num::{BigInt, BigUint, One, Zero};
 use std::fmt;
-use std::fmt::Display;
+use std::fmt::{Display, Write};
+use num::complex::Complex;
+use num::{Integer, Num, Signed};
+use num::rational::Ratio;
 use super::Polynomial;
 
 /// Specifies the format used by the `Polynomial.format_with` method.
@@ -15,44 +19,208 @@ pub enum PolynomialFormat {
     Concise
 }
 
-impl Polynomial {
-    fn write_to_fmt(&self, f: &mut dyn fmt::Write, string_format: PolynomialFormat) -> fmt::Result {
+pub trait CoefficientFormat {
+    fn format_coefficient<T: Write>(
+        &self,
+        w: &mut T,
+        is_leading_term: bool,
+        is_last_term: bool,
+        format: &PolynomialFormat
+    ) -> fmt::Result;
+}
+
+trait UniversalAbs {
+    fn abs_universal(&self) -> Self;
+}
+
+macro_rules! impl_is_negative_signed {
+    ($type:ty) => {
+        impl UniversalAbs for $type {
+            fn abs_universal(&self) -> Self {
+                self.abs()
+            }
+        }
+    };
+}
+
+macro_rules! impl_is_negative_unsigned {
+    ($type:ty) => {
+        impl UniversalAbs for $type {
+            fn abs_universal(&self) -> Self {
+                *self
+            }
+        }
+    };
+}
+
+impl_is_negative_signed!(i8);
+impl_is_negative_signed!(i16);
+impl_is_negative_signed!(i32);
+impl_is_negative_signed!(i64);
+impl_is_negative_signed!(i128);
+impl_is_negative_signed!(isize);
+
+impl_is_negative_unsigned!(u8);
+impl_is_negative_unsigned!(u16);
+impl_is_negative_unsigned!(u32);
+impl_is_negative_unsigned!(u64);
+impl_is_negative_unsigned!(u128);
+impl_is_negative_unsigned!(usize);
+
+impl<T> CoefficientFormat for Ratio<T>
+where
+    T: Clone + Display + Integer + UniversalAbs
+{
+    fn format_coefficient<K: Write>(
+        &self,
+        f: &mut K,
+        is_leading_term: bool,
+        is_last_term: bool,
+        format: &PolynomialFormat
+    ) -> fmt::Result {
+
+        let is_negative = self < &Ratio::zero();
+
+        if is_leading_term && is_negative {
+            write!(f, "- ")?;
+        } else if !is_leading_term {
+            write!(f, "{} ", if is_negative { "-" } else { "+" })?;
+        }
+
+        let numerator = self.numer().abs_universal();
+        let denominator = self.denom().abs_universal();
+
+        if !self.is_one() || is_last_term {
+            match format {
+                PolynomialFormat::Latex => write!(f, r"\frac{}{}\cdot", numerator, denominator)?,
+                _ => write!(f, r"{}/{}\cdot", numerator, denominator)?
+            }
+        }
+        Ok(())
+    }
+}
+
+impl<T> CoefficientFormat for Complex<T>
+where
+    T: Display + Clone + Num + PartialOrd
+{
+    fn format_coefficient<K: Write>(
+        &self,
+        w: &mut K,
+        is_leading_term: bool,
+        _is_last_term: bool,
+        _format: &PolynomialFormat
+    ) -> fmt::Result {
+        if !is_leading_term {
+            write!(w, "+ ")?;
+        }
+
+        write!(w, "({})*", self)?;
+        Ok(())
+    }
+}
+
+macro_rules! impl_coefficient_format_signed {
+    ($type:ty) => {
+        impl CoefficientFormat for $type {
+            fn format_coefficient<T: Write>(
+                &self,
+                w: &mut T,
+                is_leading_term: bool,
+                is_last_term: bool,
+                _format: &PolynomialFormat
+            ) -> fmt::Result {
+                if is_leading_term && self.is_negative() {
+                    write!(w, "- ")?;
+                } else if !is_leading_term {
+                    write!(w, "{} ", if self.is_negative() { "-" } else { "+" })?;
+                }
+
+                if !self.abs().is_one() || is_last_term {
+                    write!(w, "{}", self.abs())?;
+                }
+                Ok(())
+            }
+        }
+    };
+}
+
+macro_rules! impl_coefficient_format_unsigned {
+    ($type:ty) => {
+        impl CoefficientFormat for $type {
+            fn format_coefficient<T: Write>(
+                &self,
+                w: &mut T,
+                is_leading_term: bool,
+                is_last_term: bool,
+                _format: &PolynomialFormat
+            ) -> fmt::Result {
+                if !is_leading_term {
+                    write!(w, "+ ")?;
+                }
+
+                if !self.is_one() || is_last_term {
+                    write!(w, "{}", self)?;
+                }
+                Ok(())
+            }
+        }
+    };
+}
+
+impl_coefficient_format_signed!(f32);
+impl_coefficient_format_signed!(f64);
+impl_coefficient_format_signed!(i8);
+impl_coefficient_format_signed!(i16);
+impl_coefficient_format_signed!(i32);
+impl_coefficient_format_signed!(i64);
+impl_coefficient_format_signed!(i128);
+impl_coefficient_format_signed!(isize);
+
+impl_coefficient_format_unsigned!(u8);
+impl_coefficient_format_unsigned!(u16);
+impl_coefficient_format_unsigned!(u32);
+impl_coefficient_format_unsigned!(u64);
+impl_coefficient_format_unsigned!(u128);
+impl_coefficient_format_unsigned!(usize);
+
+impl_coefficient_format_signed!(BigInt);
+impl_coefficient_format_unsigned!(BigUint);
+
+impl<T> Polynomial<T>
+where
+    T: Num + CoefficientFormat
+{
+    fn write_to_fmt<K: Write>(&self, w: &mut K, string_format: PolynomialFormat) -> fmt::Result {
         // Handle the zero polynomial case
         if let None = self.degree() {
-            return write!(f, "0");
+            return write!(w, "0");
         }
 
         for (power, coefficient) in self.coefficients.iter().rev() {
-            if *coefficient == 0.0 {
+            if coefficient.is_zero() {
                 continue;
             }
 
-            let sign = if *coefficient > 0.0 { "+" } else { "-" };
-
-            // Write the sign of the term
-            if *power == self.degree().unwrap() && sign == "-" {
-                write!(f, "{sign} ")?;
-            } else if *power != self.degree().unwrap() {
-                write!(f, " {sign} ")?;
-            }
-
-            // Write the coefficient if it's not 1, or it's the term of degree 0
-            if coefficient.abs() != 1.0 || *power == 0 {
-                write!(f, "{}", coefficient.abs())?;
-            }
+            coefficient.format_coefficient(
+                w,
+                *power == self.degree().unwrap(),
+                *power == 0,
+                &string_format
+            )?;
 
             // Write the indeterminate x and the power if it's not 0
             if *power == 0 {
                 continue;
             }
             if *power == 1 {
-                write!(f, "x")?;
+                write!(w, "x")?;
                 continue;
             }
             match string_format {
-                PolynomialFormat::Latex => write!(f, "x^{{{power}}}")?,
-                PolynomialFormat::Concise => write!(f, "x{power}")?,
-                PolynomialFormat::Standard => write!(f, "x^{power}")?,
+                PolynomialFormat::Latex => write!(w, "x^{{{power}}}")?,
+                PolynomialFormat::Concise => write!(w, "x{power}")?,
+                PolynomialFormat::Standard => write!(w, "x^{power}")?,
             }
         }
         Ok(())
@@ -92,7 +260,10 @@ impl Polynomial {
     }
 }
 
-impl Display for Polynomial {
+impl<T> Display for Polynomial<T>
+where
+    T: Num + CoefficientFormat
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.write_to_fmt(f, PolynomialFormat::Standard)
     }
@@ -141,7 +312,7 @@ mod tests {
 
     #[test]
     fn to_string_handles_zero_polynomial() {
-        let poly = Polynomial::zero();
+        let poly: Polynomial<f64> = Polynomial::zero();
         assert_eq!("0", poly.to_string());
     }
 

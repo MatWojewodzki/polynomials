@@ -1,11 +1,15 @@
 use std::ops::Neg;
+use num::Num;
 use super::Polynomial;
 
-impl Neg for Polynomial {
-    type Output = Polynomial;
+impl<T> Neg for Polynomial<T>
+where
+    T: Num + Clone + Neg<Output = T>
+{
+    type Output = Polynomial<T>;
 
     fn neg(self) -> Self::Output {
-        self * -1
+        self * -T::one()
     }
 }
 

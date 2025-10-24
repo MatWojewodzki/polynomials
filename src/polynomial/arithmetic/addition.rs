@@ -1,14 +1,21 @@
 use std::ops::{Add, AddAssign};
+use num::Num;
 use super::super::Polynomial;
 
-fn add_in_place(poly1: &mut Polynomial, poly2: &Polynomial) {
+fn add_in_place<T>(poly1: &mut Polynomial<T>, poly2: &Polynomial<T>)
+where
+    T: Num + Clone
+{
     for (power, coefficient) in poly2.coefficients.iter() {
-        poly1.add_coefficient_at(*power, *coefficient);
+        poly1.add_coefficient_at(*power, coefficient.clone());
     }
 }
 
-impl Add<&Self> for Polynomial {
-    type Output = Polynomial;
+impl<T> Add<&Self> for Polynomial<T>
+where
+    T: Num + Clone
+{
+    type Output = Polynomial<T>;
 
     fn add(mut self, rhs: &Self) -> Self::Output {
         add_in_place(&mut self, rhs);
@@ -16,40 +23,34 @@ impl Add<&Self> for Polynomial {
     }
 }
 
-impl Add<f64> for Polynomial {
-    type Output = Polynomial;
+impl<T> Add<T> for Polynomial<T>
+where
+    T: Num + Clone
+{
+    type Output = Polynomial<T>;
     
-    fn add(mut self, rhs: f64) -> Self::Output {
+    fn add(mut self, rhs: T) -> Self::Output {
         self.add_coefficient_at(0, rhs);
         self
     }
 }
 
-impl Add<i32> for Polynomial {
-    type Output = Polynomial;
-    
-    fn add(mut self, rhs: i32) -> Self::Output {
-        self.add_coefficient_at(0, rhs as f64);
-        self
-    }
-}
-
-impl AddAssign<&Self> for Polynomial {
+impl<T> AddAssign<&Self> for Polynomial<T>
+where
+    T: Num + Clone
+{
     fn add_assign(&mut self, rhs: &Self) {
         add_in_place(self, rhs);
     }
 }
 
-impl AddAssign<f64> for Polynomial {
-    fn add_assign(&mut self, rhs: f64) {
+impl<T> AddAssign<T> for Polynomial<T>
+where
+    T: Num + Clone
+{
+    fn add_assign(&mut self, rhs: T) {
         self.add_coefficient_at(0, rhs);
     }   
-}
-
-impl AddAssign<i32> for Polynomial {
-    fn add_assign(&mut self, rhs: i32) {
-        self.add_coefficient_at(0, rhs as f64);
-    }
 }
 
 #[cfg(test)]
@@ -65,16 +66,9 @@ mod tests {
     }
 
     #[test]
-    fn add_float() {
+    fn add_scalar() {
         let poly = Polynomial::from_coefficients(&vec![-2.0, 0.0, 1.0]);
         let poly_plus_two = poly + 2.0;
-        assert_eq!(vec![-2.0, 0.0, 3.0], poly_plus_two.get_coefficients());
-    }
-
-    #[test]
-    fn add_int() {
-        let poly = Polynomial::from_coefficients(&vec![-2.0, 0.0, 1.0]);
-        let poly_plus_two = poly + 2;
         assert_eq!(vec![-2.0, 0.0, 3.0], poly_plus_two.get_coefficients());
     }
 
@@ -87,16 +81,9 @@ mod tests {
     }
 
     #[test]
-    fn add_assign_float() {
+    fn add_assign_scalar() {
         let mut poly = Polynomial::from_coefficients(&vec![-2.0, 0.0, 1.0]);
         poly += 2.0;
-        assert_eq!(vec![-2.0, 0.0, 3.0], poly.get_coefficients());
-    }
-
-    #[test]
-    fn add_assign_int() {
-        let mut poly = Polynomial::from_coefficients(&vec![-2.0, 0.0, 1.0]);
-        poly += 2;
         assert_eq!(vec![-2.0, 0.0, 3.0], poly.get_coefficients());
     }
 }

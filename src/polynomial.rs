@@ -1,4 +1,7 @@
 use std::collections::BTreeMap;
+use num::Num;
+use num::traits::Pow;
+
 mod coefficients;
 mod parsing;
 mod arithmetic;
@@ -21,11 +24,11 @@ pub mod display;
 /// assert_eq!(5.0, value);
 /// ```
 #[derive(PartialEq, Debug, Clone)]
-pub struct Polynomial {
-    coefficients: BTreeMap<u32, f64>,
+pub struct Polynomial<T> {
+    coefficients: BTreeMap<u32, T>,
 }
 
-impl Polynomial {
+impl<T> Polynomial<T> {
     /// Returns a new polynomial with all coefficients set to zero.
     ///
     /// # Examples
@@ -36,7 +39,7 @@ impl Polynomial {
     /// let poly = Polynomial::zero();
     /// assert!(poly.is_zero());
     /// ```
-    pub fn zero() -> Polynomial {
+    pub fn zero() -> Polynomial<T> {
         Polynomial {
             coefficients: BTreeMap::new(),
         }
@@ -99,7 +102,13 @@ impl Polynomial {
     pub fn clear(&mut self) {
         self.coefficients.clear();
     }
+}
 
+impl<T> Polynomial<T>
+where
+    T: Num + Clone + Pow<T, Output = T>,
+    u32: Into<T>,
+{
     /// Evaluates the polynomial at a given x using Horner's method.
     ///
     /// # Examples
@@ -110,22 +119,28 @@ impl Polynomial {
     /// let poly = Polynomial::from_coefficients(&vec![1.0, 1.0, -2.0]);
     /// let value = poly.evaluate(1.0);
     /// assert_eq!(0.0, value);
-    pub fn evaluate(&self, x: f64) -> f64 {
-        let mut result = 0.0;
+    pub fn evaluate(&self, x: T) -> T {
+        let mut result = T::zero();
         let mut last_power: Option<u32> = None;
 
         for (power, coefficient) in self.coefficients.iter().rev() {
             if let Some(last_x_power) = last_power {
                 let power_diff = last_x_power - *power;
-                result *= x.powi(power_diff as i32);
+                result = result * x.clone().pow(power_diff.into());
             }
 
-            result += coefficient;
+            result = result + coefficient.clone();
             last_power = Some(*power);
         }
         result
     }
+}
 
+impl<T> Polynomial<T>
+where
+    T: Num + Clone,
+    u32: Into<T>,
+{
     /// Returns the derivative of a polynomial function.
     ///
     /// # Examples
@@ -145,7 +160,7 @@ impl Polynomial {
             if *power < 1 {
                 continue;
             }
-            result.set_coefficient_at(*power - 1, *coefficient * (*power as f64));
+            result.set_coefficient_at(*power - 1, coefficient.clone() * (*power).into());
         }
         result
     }
@@ -183,7 +198,7 @@ mod tests {
 
     #[test]
     fn degree_handles_zero_polynomial() {
-        let poly = Polynomial::zero();
+        let poly: Polynomial<f64> = Polynomial::zero();
         assert_eq!(poly.degree(), None);
     }
 

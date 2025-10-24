@@ -1,7 +1,12 @@
 //! Module containing methods for manipulating the coefficients of a polynomial.
+
+use num::Num;
 use super::Polynomial;
 
-impl Polynomial {
+impl<T> Polynomial<T>
+where
+    T: Num + Clone,
+{
     /// Sets the coefficient in the term with the indeterminate raised to the given power.
     ///
     /// # Examples
@@ -14,8 +19,8 @@ impl Polynomial {
     /// poly.set_coefficient_at(3, -2.0);
     /// assert_eq!(vec![-2.0, 0.0, 0.0, 3.0], poly.get_coefficients());
     /// ```
-    pub fn set_coefficient_at(&mut self, power: u32, coefficient: f64) {
-        if coefficient == 0.0 {
+    pub fn set_coefficient_at(&mut self, power: u32, coefficient: T) {
+        if coefficient.is_zero() {
             self.coefficients.remove(&power);
             return;
         }
@@ -34,8 +39,8 @@ impl Polynomial {
     /// assert_eq!(0.0, poly.get_coefficient_at(1));
     /// assert_eq!(3.0, poly.get_coefficient_at(0));
     /// ```
-    pub fn get_coefficient_at(&self, power: u32) -> f64 {
-        self.coefficients.get(&power).copied().unwrap_or(0.0)
+    pub fn get_coefficient_at(&self, power: u32) -> T {
+        self.coefficients.get(&power).cloned().unwrap_or(T::zero())
     }
 
     /// Adds the specified value to the coefficient of the term with the indeterminate raised
@@ -51,7 +56,7 @@ impl Polynomial {
     /// poly.add_coefficient_at(0, -1.0);
     /// assert_eq!(vec![4.0, 3.0, -3.0], poly.get_coefficients());
     /// ```
-    pub fn add_coefficient_at(&mut self, power: u32, coefficient: f64) {
+    pub fn add_coefficient_at(&mut self, power: u32, coefficient: T) {
         self.set_coefficient_at(power, self.get_coefficient_at(power) + coefficient);
     }
 
@@ -68,7 +73,7 @@ impl Polynomial {
     /// poly.sub_coefficient_at(0, -1.0);
     /// assert_eq!(vec![-2.0, 3.0, -1.0], poly.get_coefficients());
     /// ```
-    pub fn sub_coefficient_at(&mut self, power: u32, coefficient: f64) {
+    pub fn sub_coefficient_at(&mut self, power: u32, coefficient: T) {
         self.set_coefficient_at(power, self.get_coefficient_at(power) - coefficient);
     }
 
@@ -86,7 +91,7 @@ impl Polynomial {
     /// poly.mul_coefficient_at(0, 0.0);
     /// assert_eq!(vec![3.0, -6.0, 0.0], poly.get_coefficients());
     /// ```
-    pub fn mul_coefficient_at(&mut self, power: u32, coefficient: f64) {
+    pub fn mul_coefficient_at(&mut self, power: u32, coefficient: T) {
         self.set_coefficient_at(power, self.get_coefficient_at(power) * coefficient);
     }
 
@@ -103,7 +108,7 @@ impl Polynomial {
     /// poly.div_coefficient_at(0, -2.0);
     /// assert_eq!(vec![0.5, 3.0, 1.0], poly.get_coefficients());
     /// ```
-    pub fn div_coefficient_at(&mut self, power: u32, coefficient: f64) {
+    pub fn div_coefficient_at(&mut self, power: u32, coefficient: T) {
         self.set_coefficient_at(power, self.get_coefficient_at(power) / coefficient);
     }
 
@@ -122,10 +127,10 @@ impl Polynomial {
     /// let poly = Polynomial::from_coefficients(&coefficients);
     /// assert_eq!(coefficients, poly.get_coefficients());
     /// ```
-    pub fn from_coefficients(coefficients: &Vec<f64>) -> Polynomial {
+    pub fn from_coefficients(coefficients: &Vec<T>) -> Polynomial<T> {
         let mut poly = Polynomial::zero();
         for (power, coefficient) in (0..coefficients.len()).rev().zip(coefficients.iter()) {
-            poly.set_coefficient_at(power as u32, *coefficient);
+            poly.set_coefficient_at(power as u32, coefficient.clone());
         }
         poly
     }
@@ -145,7 +150,7 @@ impl Polynomial {
     /// let poly = Polynomial::from_coefficients(&coefficients);
     /// assert_eq!(vec![1.0, 0.0, -2.0], poly.get_coefficients());
     /// ```
-    pub fn get_coefficients(&self) -> Vec<f64> {
+    pub fn get_coefficients(&self) -> Vec<T> {
         let mut result = Vec::new();
         let mut last_power: Option<u32> = None;
         for (power, coefficient) in self.coefficients.iter().rev() {
@@ -155,11 +160,11 @@ impl Polynomial {
                 let skipped_powers_count = last_x_power - *power - 1;
                 if skipped_powers_count > 0 {
                     for _ in 0..skipped_powers_count {
-                        result.push(0.0);
+                        result.push(T::zero());
                     }
                 }
             }
-            result.push(*coefficient);
+            result.push(coefficient.clone());
             last_power = Some(*power);
         }
 
@@ -167,7 +172,7 @@ impl Polynomial {
         if let Some(last_x_power) = last_power {
             if last_x_power > 0 {
                 for _ in 0..last_x_power {
-                    result.push(0.0);
+                    result.push(T::zero());
                 }
             }
         }
