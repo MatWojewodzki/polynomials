@@ -84,7 +84,7 @@ where
         if is_leading_term && is_negative {
             write!(f, "- ")?;
         } else if !is_leading_term {
-            write!(f, "{} ", if is_negative { "-" } else { "+" })?;
+            write!(f, " {} ", if is_negative { "-" } else { "+" })?;
         }
 
         let numerator = self.numer().abs_universal();
@@ -112,7 +112,7 @@ where
         _format: &PolynomialFormat
     ) -> fmt::Result {
         if !is_leading_term {
-            write!(w, "+ ")?;
+            write!(w, " + ")?;
         }
 
         write!(w, "({})*", self)?;
@@ -133,7 +133,7 @@ macro_rules! impl_coefficient_format_signed {
                 if is_leading_term && self.is_negative() {
                     write!(w, "- ")?;
                 } else if !is_leading_term {
-                    write!(w, "{} ", if self.is_negative() { "-" } else { "+" })?;
+                    write!(w, " {} ", if self.is_negative() { "-" } else { "+" })?;
                 }
 
                 if !self.abs().is_one() || is_last_term {
@@ -156,7 +156,7 @@ macro_rules! impl_coefficient_format_unsigned {
                 _format: &PolynomialFormat
             ) -> fmt::Result {
                 if !is_leading_term {
-                    write!(w, "+ ")?;
+                    write!(w, " + ")?;
                 }
 
                 if !self.is_one() || is_last_term {
