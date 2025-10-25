@@ -40,6 +40,7 @@ where
         is_last_term: bool,
         format: &PolynomialFormat,
     ) -> fmt::Result {
+        // Write the sign of the term
         if is_leading_term && self.is_negative() {
             write!(f, "- ")?;
         } else if !is_leading_term {
@@ -49,10 +50,19 @@ where
         let numerator = self.numer().abs();
         let denominator = self.denom().abs();
 
+        // Write the abs of the coefficient
         if !self.is_one() || is_last_term {
             match format {
-                PolynomialFormat::Latex => write!(f, r"\frac{}{}\cdot", numerator, denominator)?,
-                _ => write!(f, r"{}/{}\cdot", numerator, denominator)?,
+                PolynomialFormat::Latex => write!(f, r"\frac{}{}", numerator, denominator)?,
+                _ => write!(f, r"{}/{}", numerator, denominator)?,
+            }
+        }
+
+        // Write the multiplication sign
+        if !is_last_term {
+            match format {
+                PolynomialFormat::Latex => write!(f, r"\cdot")?,
+                _ => write!(f, "*")?,
             }
         }
         Ok(())
@@ -201,11 +211,22 @@ where
 mod tests {
     use super::Polynomial;
     use crate::PolynomialFormat;
+    use num::rational::Ratio;
 
     #[test]
-    fn to_string_handles_general_case() {
-        let poly = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
-        assert_eq!("x^2 + 2x - 3", poly.to_string());
+    fn to_string_float() {
+        let poly = Polynomial::from_coefficients(&vec![1.0, 2.5, -3.0]);
+        assert_eq!("x^2 + 2.5x - 3", poly.to_string());
+    }
+
+    #[test]
+    fn to_string_rational() {
+        let poly = Polynomial::from_coefficients(&vec![
+            Ratio::new_raw(-1, 2),
+            Ratio::new_raw(3, 7),
+            Ratio::new_raw(-1, 3),
+        ]);
+        assert_eq!("- 1/2*x^2 + 3/7*x - 1/3", poly.to_string());
     }
 
     #[test]
