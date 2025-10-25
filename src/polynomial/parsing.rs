@@ -1,13 +1,13 @@
-use std::fmt::Debug;
-use std::str::FromStr;
+use super::Polynomial;
 use num::Num;
 use regex::Regex;
-use super::Polynomial;
+use std::fmt::Debug;
+use std::str::FromStr;
 
 impl<T> FromStr for Polynomial<T>
 where
     T: Clone + FromStr + Num,
-    <T as FromStr>::Err: Debug
+    <T as FromStr>::Err: Debug,
 {
     type Err = &'static str;
 
@@ -64,7 +64,6 @@ where
     /// let poly = Polynomial::from_str("-2 * x^2 -3*x + 5").unwrap();
     /// ```
     fn from_str(string: &str) -> Result<Self, Self::Err> {
-
         let mut poly = Polynomial::zero();
         let err = Err("Invalid string format.");
 
@@ -79,19 +78,18 @@ where
                 &format!("+ {}", string.trim())
             }
         } else {
-            return Ok(poly)
+            return Ok(poly);
         };
 
         let mut captured_terms = String::new();
 
         for caps in re.captures_iter(string) {
-
             captured_terms.push_str(&caps[0]);
 
             let sign: T = match caps.name("sign").unwrap().as_str() {
                 "+" => T::one(),
                 "-" => T::zero() - T::one(),
-                _ => panic!("Sign was supposed to be '+' or '-'.")
+                _ => panic!("Sign was supposed to be '+' or '-'."),
             };
 
             let coefficient: Option<T> = if let Some(mat) = caps.name("coefficient") {
@@ -104,7 +102,7 @@ where
             let variable: Option<char> = if let Some(mat) = caps.name("variable") {
                 Some(mat.as_str().chars().next().unwrap())
             } else if coefficient.is_none() {
-                return err
+                return err;
             } else {
                 None
             };
@@ -132,7 +130,7 @@ where
         let string = string.replace(" ", "").replace("\n", "");
 
         if captured_terms != string {
-            return err
+            return err;
         }
 
         Ok(poly)
@@ -141,8 +139,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
     use super::Polynomial;
+    use std::str::FromStr;
 
     #[test]
     fn from_string_integer_coefficients() {

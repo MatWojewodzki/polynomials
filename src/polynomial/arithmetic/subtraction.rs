@@ -1,10 +1,10 @@
-use std::ops::{Sub, SubAssign};
-use num::Num;
 use super::Polynomial;
+use num::Num;
+use std::ops::{Sub, SubAssign};
 
 fn subtract_in_place<T>(poly1: &mut Polynomial<T>, poly2: &Polynomial<T>)
 where
-    T: Num + Clone
+    T: Num + Clone,
 {
     for (power, coefficient) in poly2.coefficients.iter() {
         poly1.sub_coefficient_at(*power, coefficient.clone());
@@ -13,7 +13,7 @@ where
 
 impl<T> Sub<&Self> for Polynomial<T>
 where
-    T: Num + Clone
+    T: Num + Clone,
 {
     type Output = Polynomial<T>;
 
@@ -25,7 +25,7 @@ where
 
 impl<T> Sub<T> for Polynomial<T>
 where
-    T: Num + Clone
+    T: Num + Clone,
 {
     type Output = Polynomial<T>;
 
@@ -37,7 +37,7 @@ where
 
 impl<T> SubAssign<&Self> for Polynomial<T>
 where
-    T: Num + Clone
+    T: Num + Clone,
 {
     fn sub_assign(&mut self, rhs: &Self) {
         subtract_in_place(self, rhs);
@@ -46,7 +46,7 @@ where
 
 impl<T> SubAssign<T> for Polynomial<T>
 where
-    T: Num + Clone
+    T: Num + Clone,
 {
     fn sub_assign(&mut self, rhs: T) {
         self.sub_coefficient_at(0, rhs);

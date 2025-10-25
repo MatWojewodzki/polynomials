@@ -1,7 +1,7 @@
 mod addition;
-mod subtraction;
-mod multiplication;
 mod division;
+mod multiplication;
 mod negation;
+mod subtraction;
 
 use super::Polynomial;

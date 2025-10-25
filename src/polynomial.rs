@@ -1,11 +1,11 @@
-use std::collections::BTreeMap;
 use num::Num;
 use num::traits::Pow;
+use std::collections::BTreeMap;
 
-mod coefficients;
-mod parsing;
 mod arithmetic;
+mod coefficients;
 pub mod display;
+mod parsing;
 
 /// Represents a univariate polynomial with real coefficients.
 ///
@@ -155,7 +155,6 @@ where
     pub fn derivative(&self) -> Self {
         let mut result = Polynomial::zero();
         for (power, coefficient) in self.coefficients.iter() {
-
             // Skip the zero-power term to avoid u32 subtraction with overflow
             if *power < 1 {
                 continue;

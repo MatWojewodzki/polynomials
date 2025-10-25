@@ -1,17 +1,17 @@
-use std::ops::{Mul, MulAssign};
-use num::Num;
 use super::Polynomial;
+use num::Num;
+use std::ops::{Mul, MulAssign};
 
 fn multiply<T>(poly1: &Polynomial<T>, poly2: &Polynomial<T>) -> Polynomial<T>
 where
-    T: Num + Clone + Mul<Output = T>
+    T: Num + Clone + Mul<Output = T>,
 {
     let mut poly = Polynomial::zero();
     for (power, coefficient) in poly1.coefficients.iter() {
         for (other_power, other_coefficient) in poly2.coefficients.iter() {
             poly.add_coefficient_at(
                 *power + *other_power,
-                coefficient.clone() * other_coefficient.clone()
+                coefficient.clone() * other_coefficient.clone(),
             );
         }
     }
@@ -20,7 +20,7 @@ where
 
 fn multiply_in_place_by_scalar<T>(poly: &mut Polynomial<T>, scalar: T)
 where
-    T: Num + Clone 
+    T: Num + Clone,
 {
     // Prevent zeros from being present in the map
     if scalar == T::zero() {
@@ -34,7 +34,7 @@ where
 
 impl<T> Mul<&Self> for Polynomial<T>
 where
-    T: Num + Clone
+    T: Num + Clone,
 {
     type Output = Polynomial<T>;
 
@@ -45,7 +45,7 @@ where
 
 impl<T> Mul<T> for Polynomial<T>
 where
-    T: Num + Clone 
+    T: Num + Clone,
 {
     type Output = Polynomial<T>;
 
@@ -57,7 +57,7 @@ where
 
 impl<T> MulAssign<&Self> for Polynomial<T>
 where
-    T: Num + Clone
+    T: Num + Clone,
 {
     fn mul_assign(&mut self, rhs: &Self) {
         *self = multiply(&self, rhs);
@@ -66,7 +66,7 @@ where
 
 impl<T> MulAssign<T> for Polynomial<T>
 where
-    T: Num + Clone 
+    T: Num + Clone,
 {
     fn mul_assign(&mut self, rhs: T) {
         multiply_in_place_by_scalar(self, rhs);

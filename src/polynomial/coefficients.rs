@@ -1,7 +1,7 @@
 //! Module containing methods for manipulating the coefficients of a polynomial.
 
-use num::Num;
 use super::Polynomial;
+use num::Num;
 
 impl<T> Polynomial<T>
 where
@@ -154,7 +154,6 @@ where
         let mut result = Vec::new();
         let mut last_power: Option<u32> = None;
         for (power, coefficient) in self.coefficients.iter().rev() {
-
             // Add skipped zero coefficients
             if let Some(last_x_power) = last_power {
                 let skipped_powers_count = last_x_power - *power - 1;

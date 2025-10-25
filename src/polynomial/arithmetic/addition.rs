@@ -1,10 +1,10 @@
-use std::ops::{Add, AddAssign};
-use num::Num;
 use super::super::Polynomial;
+use num::Num;
+use std::ops::{Add, AddAssign};
 
 fn add_in_place<T>(poly1: &mut Polynomial<T>, poly2: &Polynomial<T>)
 where
-    T: Num + Clone
+    T: Num + Clone,
 {
     for (power, coefficient) in poly2.coefficients.iter() {
         poly1.add_coefficient_at(*power, coefficient.clone());
@@ -13,7 +13,7 @@ where
 
 impl<T> Add<&Self> for Polynomial<T>
 where
-    T: Num + Clone
+    T: Num + Clone,
 {
     type Output = Polynomial<T>;
 
@@ -25,10 +25,10 @@ where
 
 impl<T> Add<T> for Polynomial<T>
 where
-    T: Num + Clone
+    T: Num + Clone,
 {
     type Output = Polynomial<T>;
-    
+
     fn add(mut self, rhs: T) -> Self::Output {
         self.add_coefficient_at(0, rhs);
         self
@@ -37,7 +37,7 @@ where
 
 impl<T> AddAssign<&Self> for Polynomial<T>
 where
-    T: Num + Clone
+    T: Num + Clone,
 {
     fn add_assign(&mut self, rhs: &Self) {
         add_in_place(self, rhs);
@@ -46,11 +46,11 @@ where
 
 impl<T> AddAssign<T> for Polynomial<T>
 where
-    T: Num + Clone
+    T: Num + Clone,
 {
     fn add_assign(&mut self, rhs: T) {
         self.add_coefficient_at(0, rhs);
-    }   
+    }
 }
 
 #[cfg(test)]

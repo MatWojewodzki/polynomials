@@ -1,38 +1,38 @@
-use std::ops::{Div, DivAssign, Rem, RemAssign};
-use num::Num;
 use super::Polynomial;
+use num::Num;
+use std::ops::{Div, DivAssign, Rem, RemAssign};
 
 pub struct PolynomialDivisionResult<T> {
     pub quotient: Polynomial<T>,
-    pub remainder: Polynomial<T>
+    pub remainder: Polynomial<T>,
 }
 
 struct Term<T> {
     coefficient: T,
-    power: u32
+    power: u32,
 }
 
 /// Returns a leading term of a [`Polynomial`].
 fn leading_term<T>(poly: &Polynomial<T>) -> Term<T>
 where
-    T: Num + Clone
+    T: Num + Clone,
 {
     let degree = poly.degree().unwrap();
     Term {
         coefficient: poly.get_coefficient_at(degree),
-        power: degree
+        power: degree,
     }
 }
 
 /// Returns a quotient of two terms as a [`Polynomial`].
 fn divide_terms<T>(term1: Term<T>, term2: Term<T>) -> Polynomial<T>
 where
-    T: Num + Clone
+    T: Num + Clone,
 {
     let mut quotient = Polynomial::zero();
     quotient.set_coefficient_at(
         term1.power - term2.power,
-        term1.coefficient / term2.coefficient
+        term1.coefficient / term2.coefficient,
     );
     quotient
 }
@@ -44,7 +44,7 @@ where
 /// remainder of the division.
 fn divide_in_place<T>(numerator: &mut Polynomial<T>, denominator: &Polynomial<T>) -> Polynomial<T>
 where
-    T: Num + Clone
+    T: Num + Clone,
 {
     if denominator.is_zero() {
         panic!("Cannot divide by the zero polynomial.");
@@ -54,9 +54,7 @@ where
     let remainder = numerator;
 
     while !remainder.is_zero() && remainder.degree().unwrap() >= denominator.degree().unwrap() {
-        let next_quotient_term = divide_terms(
-            leading_term(&remainder), leading_term(denominator)
-        );
+        let next_quotient_term = divide_terms(leading_term(&remainder), leading_term(denominator));
         quotient += &next_quotient_term;
         *remainder -= &(next_quotient_term * denominator);
     }
@@ -66,7 +64,7 @@ where
 
 fn divide_by_scalar_in_place<T>(poly: &mut Polynomial<T>, scalar: T)
 where
-    T: Num + Clone
+    T: Num + Clone,
 {
     if scalar == T::zero() {
         panic!("Cannot divide by zero.");
@@ -78,7 +76,7 @@ where
 
 impl<T> Div<&Self> for Polynomial<T>
 where
-    T: Num + Clone
+    T: Num + Clone,
 {
     type Output = PolynomialDivisionResult<T>;
 
@@ -86,14 +84,14 @@ where
         let quotient = divide_in_place(&mut self, rhs);
         PolynomialDivisionResult {
             quotient,
-            remainder: self
+            remainder: self,
         }
     }
 }
 
 impl<T> Div<T> for Polynomial<T>
 where
-    T: Num + Clone
+    T: Num + Clone,
 {
     type Output = Polynomial<T>;
 
@@ -105,7 +103,7 @@ where
 
 impl<T> DivAssign<&Self> for Polynomial<T>
 where
-    T: Num + Clone
+    T: Num + Clone,
 {
     fn div_assign(&mut self, rhs: &Self) {
         *self = divide_in_place(self, rhs);
@@ -114,7 +112,7 @@ where
 
 impl<T> DivAssign<T> for Polynomial<T>
 where
-    T: Num + Clone
+    T: Num + Clone,
 {
     fn div_assign(&mut self, rhs: T) {
         divide_by_scalar_in_place(self, rhs);
@@ -123,7 +121,7 @@ where
 
 impl<T> Rem<&Self> for Polynomial<T>
 where
-    T: Num + Clone
+    T: Num + Clone,
 {
     type Output = Polynomial<T>;
 
@@ -135,7 +133,7 @@ where
 
 impl<T> RemAssign<&Self> for Polynomial<T>
 where
-    T: Num + Clone
+    T: Num + Clone,
 {
     fn rem_assign(&mut self, rhs: &Self) {
         divide_in_place(self, rhs);
@@ -150,8 +148,11 @@ mod tests {
     fn div() {
         let numerator = Polynomial::from_coefficients(&vec![-4.0, 12.0, -21.0, 19.0, 0.0]);
         let denominator = Polynomial::from_coefficients(&vec![2.0, -3.0, 5.0]);
-        let div_result  = numerator / &denominator;
-        assert_eq!(vec![-2.0, 3.0, -1.0], div_result.quotient.get_coefficients());
+        let div_result = numerator / &denominator;
+        assert_eq!(
+            vec![-2.0, 3.0, -1.0],
+            div_result.quotient.get_coefficients()
+        );
         assert_eq!(vec![1.0, 5.0], div_result.remainder.get_coefficients());
     }
 

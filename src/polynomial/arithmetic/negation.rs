@@ -1,10 +1,10 @@
-use std::ops::Neg;
-use num::Num;
 use super::Polynomial;
+use num::Num;
+use std::ops::Neg;
 
 impl<T> Neg for Polynomial<T>
 where
-    T: Num + Clone + Neg<Output = T>
+    T: Num + Clone + Neg<Output = T>,
 {
     type Output = Polynomial<T>;
 
