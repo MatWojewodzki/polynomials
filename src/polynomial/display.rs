@@ -71,20 +71,41 @@ where
 
 impl<T> CoefficientFormat for Complex<T>
 where
-    T: Display + Clone + Num + PartialOrd,
+    T: Display + Clone + Num + PartialOrd + CoefficientFormat,
 {
     fn format_coefficient<K: Write>(
         &self,
         w: &mut K,
         is_leading_term: bool,
-        _is_last_term: bool,
-        _format: &PolynomialFormat,
+        is_last_term: bool,
+        format: &PolynomialFormat,
     ) -> fmt::Result {
+        if self.im.is_zero() {
+            return self
+                .re
+                .format_coefficient(w, is_leading_term, is_last_term, format);
+        }
+        if self.re.is_zero() {
+            self.im
+                .format_coefficient(w, is_leading_term, is_last_term, format)?;
+            return write!(w, "i");
+        }
         if !is_leading_term {
             write!(w, " + ")?;
         }
 
-        write!(w, "({})*", self)?;
+        if !is_last_term {
+            write!(w, r"({})", self)?;
+        } else {
+            write!(w, "{}", self)?;
+        }
+
+        if !is_last_term {
+            match format {
+                PolynomialFormat::Latex => write!(w, r"\cdot")?,
+                _ => write!(w, "*")?,
+            }
+        }
         Ok(())
     }
 }
@@ -211,6 +232,7 @@ where
 mod tests {
     use super::Polynomial;
     use crate::PolynomialFormat;
+    use num::Complex;
     use num::rational::Ratio;
 
     #[test]
@@ -227,6 +249,21 @@ mod tests {
             Ratio::new_raw(-1, 3),
         ]);
         assert_eq!("- 1/2*x^2 + 3/7*x - 1/3", poly.to_string());
+    }
+
+    #[test]
+    fn to_string_complex() {
+        let poly = Polynomial::from_coefficients(&vec![
+            Complex::new(1.0, -2.5),
+            Complex::new(1.0, 0.0),
+            Complex::new(0.0, -2.0),
+            Complex::new(-3.0, -2.0),
+            Complex::new(2.0, -6.0),
+        ]);
+        assert_eq!(
+            "(1-2.5i)*x^4 + x^3 - 2ix^2 + (-3-2i)*x + 2-6i",
+            poly.to_string()
+        );
     }
 
     #[test]
