@@ -71,7 +71,7 @@ where
 
 impl<T> CoefficientFormat for Complex<T>
 where
-    T: Display + Clone + Num + PartialOrd + CoefficientFormat,
+    T: Display + Clone + Num + Signed + PartialOrd + CoefficientFormat,
 {
     fn format_coefficient<K: Write>(
         &self,
@@ -90,21 +90,38 @@ where
                 .format_coefficient(w, is_leading_term, is_last_term, format)?;
             return write!(w, "i");
         }
-        if !is_leading_term {
+
+        if !is_leading_term && !is_last_term {
             write!(w, " + ")?;
         }
 
         if !is_last_term {
-            write!(w, r"({})", self)?;
-        } else {
-            write!(w, "{}", self)?;
+            write!(w, "(")?;
         }
 
-        if !is_last_term {
-            match format {
-                PolynomialFormat::Latex => write!(w, r"\cdot")?,
-                _ => write!(w, "*")?,
+        // Write the complex number itself
+        if is_last_term {
+            if self.re.lt(&T::zero()) {
+                write!(w, " - ")?;
+            } else {
+                write!(w, " + ")?;
             }
+        } else if self.re.lt(&T::zero()) {
+            write!(w, "- ")?;
+        }
+
+        write!(w, "{} ", self.re.abs())?;
+
+        if self.im.lt(&T::zero()) {
+            write!(w, "- ")?;
+        } else {
+            write!(w, "+ ")?;
+        }
+
+        write!(w, "{}i", self.im.abs())?;
+
+        if !is_last_term {
+            write!(w, ")")?;
         }
         Ok(())
     }
@@ -261,7 +278,7 @@ mod tests {
             Complex::new(2.0, -6.0),
         ]);
         assert_eq!(
-            "(1-2.5i)*x^4 + x^3 - 2ix^2 + (-3-2i)*x + 2-6i",
+            "(1 - 2.5i)x^4 + x^3 - 2ix^2 + (- 3 - 2i)x + 2 - 6i",
             poly.to_string()
         );
     }
@@ -309,9 +326,6 @@ mod tests {
     }
 
     #[test]
-    fn format_with_concise_works() {
-        let poly = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
-        assert_eq!("x2 + 2x - 3", poly.format_with(PolynomialFormat::Concise));
     fn format_with_latex_rational() {
         let poly = Polynomial::from_coefficients(&vec![
             Ratio::new_raw(-1, 2),
@@ -320,6 +334,20 @@ mod tests {
         ]);
         assert_eq!(
             r"- \frac{1}{2}\cdotx^{2} + \frac{3}{7}\cdotx - \frac{4}{3}",
+            poly.format_with(PolynomialFormat::Latex)
+        )
+    }
+
+    #[test]
+    fn format_with_latex_complex() {
+        let poly = Polynomial::from_coefficients(&vec![
+            Complex::new(3.5, -2.0),
+            Complex::new(1.0, 0.0),
+            Complex::new(0.0, -2.0),
+            Complex::new(-3.0, -2.0),
+        ]);
+        assert_eq!(
+            "(3.5 - 2i)x^{3} + x^{2} - 2ix - 3 - 2i",
             poly.format_with(PolynomialFormat::Latex)
         )
     }
@@ -342,5 +370,18 @@ mod tests {
             poly.format_with(PolynomialFormat::Concise)
         )
     }
+
+    #[test]
+    fn format_with_concise_complex() {
+        let poly = Polynomial::from_coefficients(&vec![
+            Complex::new(-3.5, -2.0),
+            Complex::new(1.0, 0.0),
+            Complex::new(0.0, -2.0),
+            Complex::new(-3.0, -2.0),
+        ]);
+        assert_eq!(
+            "(- 3.5 - 2i)x3 + x2 - 2ix - 3 - 2i",
+            poly.format_with(PolynomialFormat::Concise)
+        )
     }
 }
