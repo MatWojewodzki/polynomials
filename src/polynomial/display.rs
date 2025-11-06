@@ -53,7 +53,7 @@ where
         // Write the abs of the coefficient
         if !self.is_one() || is_last_term {
             match format {
-                PolynomialFormat::Latex => write!(f, r"\frac{}{}", numerator, denominator)?,
+                PolynomialFormat::Latex => write!(f, r"\frac{{{}}}{{{}}}", numerator, denominator)?,
                 _ => write!(f, r"{}/{}", numerator, denominator)?,
             }
         }
@@ -303,7 +303,7 @@ mod tests {
     }
 
     #[test]
-    fn format_with_latex_works() {
+    fn format_with_latex_float() {
         let poly = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
         assert_eq!("x^{2} + 2x - 3", poly.format_with(PolynomialFormat::Latex));
     }
@@ -312,5 +312,35 @@ mod tests {
     fn format_with_concise_works() {
         let poly = Polynomial::from_coefficients(&vec![1.0, 2.0, -3.0]);
         assert_eq!("x2 + 2x - 3", poly.format_with(PolynomialFormat::Concise));
+    fn format_with_latex_rational() {
+        let poly = Polynomial::from_coefficients(&vec![
+            Ratio::new_raw(-1, 2),
+            Ratio::new_raw(3, 7),
+            Ratio::new_raw(-4, 3),
+        ]);
+        assert_eq!(
+            r"- \frac{1}{2}\cdotx^{2} + \frac{3}{7}\cdotx - \frac{4}{3}",
+            poly.format_with(PolynomialFormat::Latex)
+        )
+    }
+
+    #[test]
+    fn format_with_concise_float() {
+        let poly = Polynomial::from_coefficients(&vec![1.0, 2.5, -3.0]);
+        assert_eq!("x2 + 2.5x - 3", poly.format_with(PolynomialFormat::Concise));
+    }
+
+    #[test]
+    fn format_with_concise_rational() {
+        let poly = Polynomial::from_coefficients(&vec![
+            Ratio::new_raw(-1, 2),
+            Ratio::new_raw(3, 7),
+            Ratio::new_raw(-4, 3),
+        ]);
+        assert_eq!(
+            "- 1/2*x2 + 3/7*x - 4/3",
+            poly.format_with(PolynomialFormat::Concise)
+        )
+    }
     }
 }
