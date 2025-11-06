@@ -58,11 +58,11 @@ where
             }
         }
 
-        // Write the multiplication sign
+        // Write a space before the indeterminate or leave empty for LaTeX
         if !is_last_term {
             match format {
-                PolynomialFormat::Latex => write!(f, r"\cdot")?,
-                _ => write!(f, "*")?,
+                PolynomialFormat::Latex => (),
+                _ => write!(f, " ")?,
             }
         }
         Ok(())
@@ -265,7 +265,7 @@ mod tests {
             Ratio::new_raw(3, 7),
             Ratio::new_raw(-1, 3),
         ]);
-        assert_eq!("- 1/2*x^2 + 3/7*x - 1/3", poly.to_string());
+        assert_eq!("- 1/2 x^2 + 3/7 x - 1/3", poly.to_string());
     }
 
     #[test]
@@ -333,7 +333,7 @@ mod tests {
             Ratio::new_raw(-4, 3),
         ]);
         assert_eq!(
-            r"- \frac{1}{2}\cdotx^{2} + \frac{3}{7}\cdotx - \frac{4}{3}",
+            r"- \frac{1}{2}x^{2} + \frac{3}{7}x - \frac{4}{3}",
             poly.format_with(PolynomialFormat::Latex)
         )
     }
@@ -366,7 +366,7 @@ mod tests {
             Ratio::new_raw(-4, 3),
         ]);
         assert_eq!(
-            "- 1/2*x2 + 3/7*x - 4/3",
+            "- 1/2 x2 + 3/7 x - 4/3",
             poly.format_with(PolynomialFormat::Concise)
         )
     }
