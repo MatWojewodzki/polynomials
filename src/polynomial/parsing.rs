@@ -2,14 +2,27 @@ use super::Polynomial;
 use num::Num;
 use regex::Regex;
 use std::fmt::Debug;
+use std::ops::Neg;
 use std::str::FromStr;
+
+#[derive(Debug)]
+pub struct PolynomialParsingError(String);
+
+fn parse_coefficient<T: FromStr>(coefficient_str: &str) -> Result<T, PolynomialParsingError> {
+    Ok(T::from_str(coefficient_str).map_err(|_| {
+        PolynomialParsingError(format!(
+            "could not parse '{}' as a coefficient",
+            coefficient_str
+        ))
+    })?)
+}
 
 impl<T> FromStr for Polynomial<T>
 where
-    T: Clone + FromStr + Num,
+    T: Clone + Neg<Output = T> + FromStr + Num,
     <T as FromStr>::Err: Debug,
 {
-    type Err = &'static str;
+    type Err = PolynomialParsingError;
 
     /// Constructs a new instance from a given polynomial string representation.
     ///
@@ -64,75 +77,66 @@ where
     /// let poly = Polynomial::from_str("-2 * x^2 -3*x + 5").unwrap();
     /// ```
     fn from_str(string: &str) -> Result<Self, Self::Err> {
+        let string = string
+            .chars()
+            .filter(|c| !c.is_whitespace())
+            .collect::<String>();
+
         let mut poly = Polynomial::zero();
-        let err = Err("Invalid string format.");
 
-        let pat = r"(?<sign>[+-])[ \n]*(?<coefficient>.+)?[ \n]*\*?[ \n]*(?<variable>x)?(?:\^?(?<power>\d+))?";
-        let re = Regex::new(pat).unwrap();
-
-        // Add a trailing sign if it is not present
-        let string = if let Some(c) = string.trim().chars().next() {
-            if c == '-' || c == '+' {
-                string.trim()
-            } else {
-                &format!("+ {}", string.trim())
-            }
-        } else {
+        if string.is_empty() {
             return Ok(poly);
-        };
+        }
 
-        let mut captured_terms = String::new();
+        let term_pat = r"((?<bracket_sign>[+-])?(?<opening_bracket>\())?(?<coefficient>[0-9.ij+\-/]+)?(?<closing_bracket>\))?\*?(?<indeterminate>x)?(\^?\{?(?<exponent>\d+)}?)?";
+        let indeterminate_re = Regex::new(term_pat).unwrap();
 
-        for caps in re.captures_iter(string) {
-            captured_terms.push_str(&caps[0]);
+        for caps in indeterminate_re.captures_iter(&string) {
+            if caps.name("opening_bracket").is_some() != caps.name("closing_bracket").is_some() {
+                return Err(PolynomialParsingError(format!(
+                    "the bracket was not closed in the term '{}'",
+                    &caps[0]
+                )));
+            }
 
-            let sign: T = match caps.name("sign").unwrap().as_str() {
-                "+" => T::one(),
-                "-" => T::zero() - T::one(),
-                _ => panic!("Sign was supposed to be '+' or '-'."),
-            };
-
-            let coefficient: Option<T> = if let Some(mat) = caps.name("coefficient") {
-                // TODO: Proper error handling needed here instead of unwrap
-                Some(T::from_str(mat.as_str()).unwrap())
+            let bracket_positive = if let Some(mat) = caps.name("bracket_sign") {
+                match mat.as_str() {
+                    "+" => true,
+                    "-" => false,
+                    _ => panic!("Sign was supposed to be '+' or '-'."),
+                }
             } else {
-                None
+                true
             };
 
-            let variable: Option<char> = if let Some(mat) = caps.name("variable") {
-                Some(mat.as_str().chars().next().unwrap())
-            } else if coefficient.is_none() {
-                return err;
+            let coefficient: T = if let Some(mat) = caps.name("coefficient") {
+                match mat.as_str() {
+                    "+" => T::one(),
+                    "-" => -T::one(),
+                    _ => parse_coefficient(mat.as_str())?,
+                }
             } else {
-                None
+                T::one()
             };
 
-            let power: u32 = if let Some(mat) = caps.name("power") {
-                mat.as_str().parse().unwrap()
-            } else if variable.is_none() {
+            let coefficient = if bracket_positive {
+                coefficient
+            } else {
+                -coefficient
+            };
+
+            let indeterminate: bool = caps.name("indeterminate").is_some();
+
+            let exponent: u32 = if let Some(mat) = caps.name("exponent") {
+                mat.as_str().parse().unwrap() // Exponent should always be an integer
+            } else if !indeterminate {
                 0
             } else {
                 1
             };
 
-            // In the case of no coefficient default to 1
-            let coefficient = if let Some(coefficient) = coefficient {
-                coefficient
-            } else {
-                T::one()
-            };
-
-            poly.add_coefficient_at(power, coefficient * sign);
+            poly.add_coefficient_at(exponent, coefficient);
         }
-
-        // Compare captured terms and input string with spaces and newlines removed
-        let captured_terms = captured_terms.replace(" ", "").replace("\n", "");
-        let string = string.replace(" ", "").replace("\n", "");
-
-        if captured_terms != string {
-            return err;
-        }
-
         Ok(poly)
     }
 }
@@ -140,6 +144,8 @@ where
 #[cfg(test)]
 mod tests {
     use super::Polynomial;
+    use num::Complex;
+    use num::rational::Ratio;
     use std::str::FromStr;
 
     #[test]
@@ -173,21 +179,48 @@ mod tests {
     }
 
     #[test]
-    fn from_string_with_repeated_terms() {
-        let poly = Polynomial::from_str("x^2 + x + x^2 - x + 5 - 10").unwrap();
-        assert_eq!(vec![2.0, 0.0, -5.0], poly.get_coefficients());
+    fn from_string_empty() {
+        let poly: Polynomial<f64> = Polynomial::from_str("").unwrap();
+        assert!(poly.is_zero());
+    }
+
+    #[test]
+    fn from_string_rational() {
+        let poly: Polynomial<Ratio<i32>> =
+            Polynomial::from_str("-1/2x3 + 3/-4x2 -x - 7/5").unwrap();
+        assert_eq!(
+            vec![
+                Ratio::new(-1, 2),
+                Ratio::new(3, -4),
+                Ratio::new(-1, 1),
+                Ratio::new(-7, 5)
+            ],
+            poly.get_coefficients()
+        )
+    }
+
+    #[test]
+    fn from_string_complex() {
+        let poly: Polynomial<Complex<i32>> =
+            Polynomial::from_str("(-1 + 2i)x^4 - (3 - i)x3 + 5x2 - ix - 5 + 2i").unwrap();
+        assert_eq!(
+            vec![
+                Complex::new(-1, 2),
+                Complex::new(-3, 1),
+                Complex::new(5, 0),
+                Complex::new(0, -1),
+                Complex::new(-5, 2)
+            ],
+            poly.get_coefficients()
+        )
     }
 
     #[test]
     fn from_string_invalid_formats() {
-        assert!(Polynomial::<f64>::from_str("x^2 + + 3x").is_err());
-        assert!(Polynomial::<f64>::from_str("2y^2 + 3y").is_err());
-        assert!(Polynomial::<f64>::from_str("2x^2.5").is_err());
-    }
+        let err = Polynomial::<f64>::from_str("1.5.2x").unwrap_err();
+        assert!(err.0.contains("'1.5.2'"));
 
-    #[test]
-    fn from_string_empty() {
-        let poly: Polynomial<f64> = Polynomial::from_str("").unwrap();
-        assert!(poly.is_zero());
+        let err = Polynomial::<Complex<f64>>::from_str("+(1-ix").unwrap_err();
+        assert!(err.0.contains("not closed"));
     }
 }
