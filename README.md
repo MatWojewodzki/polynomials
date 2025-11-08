@@ -3,7 +3,6 @@
 Rust library crate for working with univariate polynomials.
 
 ## TODO list:
-- add tests for the `Polynomial.format_with()` method to check if it works properly with `Complex` and `Rational` numbers
 - adjust the `Polynomial::from_str()` function to handle `Complex` numbers properly with curly braces
 - write proper tests for the `Polynomial::from_str()` function and fix possible bugs
 - use `std::sync::LazyLock` to prevent the regex from being recompiled on every call to `Polynomial::from_str()`
