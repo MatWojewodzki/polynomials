@@ -7,7 +7,19 @@ mod coefficients;
 pub mod display;
 mod parsing;
 
-/// Represents a univariate polynomial with real coefficients.
+/// A univariate polynomial with coefficients of type `T`.
+///
+/// [`BTreeMap`] is used to store coefficients, making `Polynomial` memory-efficient when
+/// representing polynomials with many zero coefficients.
+///
+/// Type `T` is required to implement [`Clone`] and [`Num`] traits to perform basic coefficient
+/// operations on the polynomial. Other methods impose additional trait bounds.
+///
+/// Common coefficient types that can be used:
+/// - floating point numbers,
+/// - signed integers,
+/// - [`BigInt`][crate::BigInt], [`Complex`][crate::Complex] and [`Ratio`][crate::Ratio] types,
+/// - any user-defined types that implement the required traits.
 ///
 /// # Examples
 ///
@@ -45,7 +57,7 @@ impl<T> Polynomial<T> {
         }
     }
 
-    /// Checks if the polynomial is a zero polynomial.
+    /// Checks if the polynomial is the zero polynomial.
     ///
     /// # Examples
     ///
@@ -113,6 +125,7 @@ where
     ///
     /// # Examples
     ///
+    /// Calculate the value of the polynomial `x^2 + x - 2` for `x = 1`:
     /// ```
     /// use polynomials::Polynomial;
     ///
