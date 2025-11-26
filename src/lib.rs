@@ -111,5 +111,14 @@
 
 mod polynomial;
 
+pub mod prelude {
+    pub use num::rational::Ratio;
+    pub use num::{BigInt, Complex, Num};
+}
+
+pub use num::BigInt;
+pub use num::complex::Complex;
+pub use num::rational::Ratio;
+
 pub use polynomial::Polynomial;
 pub use polynomial::display::PolynomialFormat;
